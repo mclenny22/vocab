@@ -16,17 +16,21 @@ Progress and partially typed conjugations stay in this browser's local storage. 
 
 Completing a session without a single mistake launches the blue confetti effect copied from the portfolio's 404 page. This also applies to a perfect retry session. Its particle constants, launch, physics, and drawing are preserved verbatim in `dist/confetti.mjs`, with a viewport overlay and app-specific frame scheduling. It pauses in hidden tabs, clears when practice resumes, and does not replay when reopening saved results.
 
-To self-host, serve the contents of `dist/` from any static web server. All assets are local, with no dependencies or build step.
+**My topics**, above the footer, opens a recording card with a microphone-reactive waveform and a two-minute timer. Stop, listen back, and send the recording, or type a topic description. A preparation animation stays visible while the backend transcribes the audio and generates a 30-step lesson. Lessons mix multiple-choice and short typed answers with explanations. Their progress survives reloads and day changes.
+
+The expandable **Recent topics** list inside that card stores up to 12 topic sets on this device. Unfinished tests can be continued. Practising a completed topic set again generates 30 new questions using its original description and replaces the previous test; individual generations are not archived. Audio is never saved in the library. Generated questions are validated before use; their linguistic accuracy still depends on the model.
+
+The UI and topic-session helpers are in `dist/topics.mjs` and `dist/topics-core.mjs`. The server-only OpenAI integration is in `../server/topics.mjs`, exposed by `../api/topics.mjs`. No API key is included in browser code. See the [root README](../README.md) for environment variables, passphrase protection, Vercel setup, and self-hosting. Static hosting still supports the built-in modes; My topics needs the backend.
 
 ## Run locally
 
 From this directory:
 
 ```sh
-python3 -m http.server 4173 --bind 127.0.0.1 --directory dist
+npm start
 ```
 
-Open http://127.0.0.1:4173 in Chrome. No installation or build step is needed.
+Open http://127.0.0.1:4173 in Chrome. Requires Node.js 22.9 or newer and `OPENAI_API_KEY` in the repository-root `.env` for generated lessons. No installation or frontend build step is needed.
 
 ## Tests
 
