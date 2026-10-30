@@ -99,6 +99,30 @@ test('upstream credential details never appear in client errors', async () => {
   assert.ok(!(await result.text()).includes(env.OPENAI_API_KEY));
 });
 
+test('an invalid lesson is repaired once with validation feedback, while preserving the topic scope and deadline', async () => {
+  const malformed = fixture();
+  malformed.questions[2].prompt = malformed.questions[1].prompt;
+  let calls = 0;
+  let firstSignal;
+  const handle = createTopicsHandler({ env, fetchImpl: async (url, options) => {
+    calls++;
+    const payload = JSON.parse(options.body);
+    if (calls === 1) {
+      firstSignal = options.signal;
+      return response(malformed);
+    }
+    assert.equal(options.signal, firstSignal);
+    assert.match(payload.input[0].content, /Dative prepositions and shopping/);
+    assert.match(payload.input[2].content, /Question 3 repeats an earlier prompt/);
+    assert.equal(payload.store, false);
+    return response(fixture());
+  } });
+  const result = await handle(request());
+  assert.equal(result.status, 200);
+  assert.equal(calls, 2);
+  assert.equal((await result.json()).lesson.questions.length, 30);
+});
+
 test('an in-flight request blocks duplicate generation and the guard releases after failure', async () => {
   let release;
   let calls = 0;

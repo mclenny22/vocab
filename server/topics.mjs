@@ -45,6 +45,8 @@ export function createTopicsHandler({ env = process.env, fetchImpl = fetch, now 
     const requiresPassphrase = Boolean(env.TOPICS_PASSPHRASE);
     if (request.method === 'GET') return json({ configured: configured && (!production || requiresPassphrase), requiresPassphrase });
     if (request.method !== 'POST') return new Response(null, { status: 405, headers: { Allow: 'GET, POST' } });
+    // Both generation attempts share one deadline, shorter than the function's 180s limit.
+    const upstreamSignal = AbortSignal.any([request.signal, AbortSignal.timeout(150_000)]);
     let clientId;
     try {
       if (request.headers.get('x-vocab-request') !== 'topics') throw new TopicError('Please send this request from the vocabulary app.', 403);
@@ -86,7 +88,7 @@ export function createTopicsHandler({ env = process.env, fetchImpl = fetch, now 
         const text = input?.text;
         if (typeof text !== 'string' || text.trim().length < 3 || text.length > MAX_TOPIC_LENGTH) throw new TopicError('Describe your topics in 3–6,000 characters.');
         const previous = Array.isArray(input.previousPrompts) ? input.previousPrompts.filter(prompt => typeof prompt === 'string').slice(0, 30).map(prompt => prompt.slice(0, 240)) : [];
-        const result = await callOpenAI('/responses', {
+        const lessonRequest = {
           model: env.OPENAI_LESSON_MODEL || 'gpt-6-luna',
           store: false,
           instructions,
@@ -94,19 +96,32 @@ export function createTopicsHandler({ env = process.env, fetchImpl = fetch, now 
           reasoning: { effort: 'low' },
           max_output_tokens: 14000,
           text: { format: { type: 'json_schema', name: 'german_practice_lesson', strict: true, schema: LESSON_SCHEMA } }
-        });
-        if (result.status === 'incomplete') throw new TopicError('The lesson wasn’t finished. Please try preparing it again.', 502);
-        const messages = (result.output || []).filter(item => item.type === 'message');
-        if (messages.some(message => message.content?.some(item => item.type === 'refusal'))) throw new TopicError('Please describe the German vocabulary or grammar you’d like to practise.');
-        let lesson = null;
-        // Parse individual message payloads: a response can contain more than one message.
-        for (const message of messages) {
-          const output = (message.content || []).filter(item => item.type === 'output_text').map(item => item.text).join('');
-          try { lesson = validateLesson(JSON.parse(output)); } catch { /* Try the next complete message. */ }
-          if (lesson) break;
+        };
+        const topicInput = lessonRequest.input;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const result = await callOpenAI('/responses', lessonRequest);
+          if (result.status === 'incomplete') throw new TopicError('The lesson wasn’t finished. Please try preparing it again.', 502);
+          const messages = (result.output || []).filter(item => item.type === 'message');
+          if (messages.some(message => message.content?.some(item => item.type === 'refusal'))) throw new TopicError('Please describe the German vocabulary or grammar you’d like to practise.');
+          let lesson = null;
+          let candidate = '';
+          let issue = 'Return one complete lesson object matching the schema.';
+          // Parse individual message payloads: a response can contain more than one message.
+          for (const message of messages) {
+            candidate = (message.content || []).filter(item => item.type === 'output_text').map(item => item.text).join('');
+            try { lesson = validateLesson(JSON.parse(candidate), reason => { issue = reason; }); } catch { /* Try the next complete message. */ }
+            if (lesson) break;
+          }
+          if (lesson) return json({ lesson, transcript: text.trim() });
+          console.warn('Lesson validation failed:', issue);
+          // Repair an invalid generation once; never deliver unchecked or duplicate questions.
+          lessonRequest.input = [
+            { role: 'user', content: topicInput },
+            { role: 'assistant', content: candidate.slice(0, 100_000) },
+            { role: 'user', content: `Repair this lesson: ${issue} Keep the valid questions and replace or correct the invalid ones. Return the entire corrected 30-question lesson, with no duplicate prompts.` }
+          ];
         }
-        if (!lesson) throw new TopicError('The lesson couldn’t be checked. Please try preparing it again.', 502);
-        return json({ lesson, transcript: text.trim() });
+        throw new TopicError('The lesson couldn’t be checked. Please try preparing it again.', 502);
       } finally { busy.delete(clientId); }
     } catch (error) {
       if (error instanceof TopicError) return json({ error: error.message }, error.status);
@@ -120,7 +135,7 @@ export function createTopicsHandler({ env = process.env, fetchImpl = fetch, now 
         response = await fetchImpl(`https://api.openai.com/v1${path}`, {
           method: 'POST', headers: { Authorization: `Bearer ${env.OPENAI_API_KEY.trim()}`, ...(isJSON ? { 'Content-Type': 'application/json' } : {}) },
           body: isJSON ? JSON.stringify(payload) : payload,
-          signal: AbortSignal.any([request.signal, AbortSignal.timeout(150_000)])
+          signal: upstreamSignal
         });
       } catch (error) {
         if (error?.name === 'TimeoutError') throw new TopicError('Preparing this lesson took too long. Your topics are still here—please try again.', 504);

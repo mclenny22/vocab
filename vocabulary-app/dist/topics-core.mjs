@@ -33,11 +33,12 @@ const boundedText = (value, max, empty = false) => typeof value === 'string' &&
 export const normalizeTopicAnswer = value => value.normalize('NFC').trim().replace(/\s+/g, ' ').replace(/[.!?]+$/u, '').toLocaleLowerCase('de');
 
 // Whitelist the complete payload before it enters the UI or local storage.
-export function validateLesson(value) {
+export function validateLesson(value, onInvalid = () => {}) {
+  const invalid = reason => { onInvalid(reason); return null; };
   if (!value || !boundedText(value.title, 100) || !boundedText(value.summary, 500) ||
       !Array.isArray(value.topics) || !value.topics.length || value.topics.length > 6 ||
       !value.topics.every(topic => boundedText(topic, 80)) ||
-      !Array.isArray(value.questions) || value.questions.length !== LESSON_LENGTH) return null;
+      !Array.isArray(value.questions) || value.questions.length !== LESSON_LENGTH) return invalid('Use a valid title, summary, 1–6 topics, and exactly 30 questions.');
   const prompts = new Set();
   const questions = [];
   for (const question of value.questions) {
@@ -46,12 +47,12 @@ export function validateLesson(value) {
         !boundedText(question.translation, 240, true) || !boundedText(question.answer, 160) ||
         !boundedText(question.explanation, 450) || !Array.isArray(question.acceptedAnswers) ||
         question.acceptedAnswers.length > 4 || !question.acceptedAnswers.every(answer => boundedText(answer, 160)) ||
-        !Array.isArray(question.options) || !question.options.every(option => boundedText(option, 160))) return null;
+        !Array.isArray(question.options) || !question.options.every(option => boundedText(option, 160))) return invalid(`Question ${questions.length + 1} has missing or overlong fields. Respect every field limit.`);
     if (question.kind === 'choice' && (question.acceptedAnswers.length !== 0 || question.options.length !== 3 ||
-        new Set(question.options.map(normalizeTopicAnswer)).size !== 3 || !question.options.includes(question.answer))) return null;
-    if (question.kind === 'type' && question.options.length !== 0) return null;
+        new Set(question.options.map(normalizeTopicAnswer)).size !== 3 || !question.options.includes(question.answer))) return invalid(`Choice question ${questions.length + 1} needs exactly 3 distinct options, its exact answer among them, and acceptedAnswers: [].`);
+    if (question.kind === 'type' && question.options.length !== 0) return invalid(`Typed question ${questions.length + 1} must have options: [].`);
     const signature = `${question.prompt.trim()}|${question.translation.trim()}`;
-    if (prompts.has(signature)) return null;
+    if (prompts.has(signature)) return invalid(`Question ${questions.length + 1} repeats an earlier prompt and translation. All 30 questions must be distinct.`);
     prompts.add(signature);
     questions.push(Object.fromEntries(['kind', 'topic', 'prompt', 'translation', 'answer', 'acceptedAnswers', 'options', 'explanation']
       .map(key => [key, Array.isArray(question[key]) ? [...question[key]] : question[key].trim()])));
