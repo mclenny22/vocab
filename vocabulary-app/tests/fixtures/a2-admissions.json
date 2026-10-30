@@ -1,0 +1,1035 @@
+{
+  "source": "https://www.goethe.de/pro/relaunch/prf/de/Goethe-Zertifikat_A2_Wortliste.pdf",
+  "checkedOn": "2026-10-30",
+  "edition": "A2_Wortliste_04_050526",
+  "words": {
+    "window": {
+      "lemma": "Fenster",
+      "page": 14
+    },
+    "key": {
+      "lemma": "Schlüssel",
+      "page": 25
+    },
+    "door": {
+      "lemma": "Tür",
+      "page": 28
+    },
+    "house": {
+      "lemma": "Haus",
+      "page": 17
+    },
+    "table": {
+      "lemma": "Tisch",
+      "page": 27
+    },
+    "chair": {
+      "lemma": "Stuhl",
+      "page": 27
+    },
+    "bed": {
+      "lemma": "Bett",
+      "page": 11
+    },
+    "kitchen": {
+      "lemma": "Küche",
+      "page": 19
+    },
+    "book": {
+      "lemma": "Buch",
+      "page": 11
+    },
+    "bag": {
+      "lemma": "Tasche",
+      "page": 27
+    },
+    "water": {
+      "lemma": "Wasser",
+      "page": 30
+    },
+    "coffee": {
+      "lemma": "Kaffee",
+      "page": 18
+    },
+    "tea": {
+      "lemma": "Tee",
+      "page": 27
+    },
+    "milk": {
+      "lemma": "Milch",
+      "page": 21
+    },
+    "bread": {
+      "lemma": "Brot",
+      "page": 11
+    },
+    "apple": {
+      "lemma": "Apfel",
+      "page": 8
+    },
+    "strawberry": {
+      "lemma": "Erdbeere",
+      "basis": "original everyday starter word"
+    },
+    "breakfast": {
+      "lemma": "Frühstück",
+      "page": 15
+    },
+    "train": {
+      "lemma": "Zug",
+      "page": 31
+    },
+    "ticket": {
+      "lemma": "Fahrkarte",
+      "page": 14
+    },
+    "station": {
+      "lemma": "Bahnhof",
+      "page": 10
+    },
+    "street": {
+      "lemma": "Straße",
+      "page": 26
+    },
+    "car": {
+      "lemma": "Auto",
+      "page": 9
+    },
+    "bicycle": {
+      "lemma": "Fahrrad",
+      "page": 14
+    },
+    "sun": {
+      "lemma": "Sonne",
+      "page": 26
+    },
+    "rain": {
+      "lemma": "Regen",
+      "page": 23
+    },
+    "garden": {
+      "lemma": "Garten",
+      "page": 15
+    },
+    "flower": {
+      "lemma": "Blume",
+      "page": 11
+    },
+    "dog": {
+      "lemma": "Hund",
+      "page": 17
+    },
+    "cat": {
+      "lemma": "Katze",
+      "page": 18
+    },
+    "morning": {
+      "lemma": "Morgen",
+      "page": 6
+    },
+    "evening": {
+      "lemma": "Abend",
+      "page": 6
+    },
+    "night": {
+      "lemma": "Nacht",
+      "page": 6
+    },
+    "time": {
+      "lemma": "Zeit",
+      "page": 31
+    },
+    "phone": {
+      "lemma": "Handy",
+      "page": 17
+    },
+    "coat": {
+      "lemma": "Mantel",
+      "page": 20
+    },
+    "noun-jahr": {
+      "lemma": "Jahr",
+      "page": 7
+    },
+    "noun-mensch": {
+      "lemma": "Mensch",
+      "page": 21
+    },
+    "noun-kind": {
+      "lemma": "Kind",
+      "page": 5
+    },
+    "noun-tag": {
+      "lemma": "Tag",
+      "page": 6
+    },
+    "noun-leben": {
+      "lemma": "Leben",
+      "page": 20
+    },
+    "noun-seite": {
+      "lemma": "Seite",
+      "page": 25
+    },
+    "noun-thema": {
+      "lemma": "Thema",
+      "page": 27
+    },
+    "noun-frage": {
+      "lemma": "Frage",
+      "page": 15
+    },
+    "noun-information": {
+      "lemma": "Information",
+      "page": 18
+    },
+    "noun-frau": {
+      "lemma": "Frau",
+      "page": 15
+    },
+    "noun-arbeit": {
+      "lemma": "Arbeit",
+      "page": 9
+    },
+    "noun-welt": {
+      "lemma": "Welt",
+      "page": 30
+    },
+    "noun-uhr": {
+      "lemma": "Uhr",
+      "page": 28
+    },
+    "noun-kunde": {
+      "lemma": "Kunde",
+      "page": 19
+    },
+    "noun-weg": {
+      "lemma": "Weg",
+      "page": 30
+    },
+    "noun-stadt": {
+      "lemma": "Stadt",
+      "page": 26
+    },
+    "noun-land": {
+      "lemma": "Land",
+      "page": 19
+    },
+    "noun-teil": {
+      "lemma": "Teil",
+      "page": 5
+    },
+    "noun-bild": {
+      "lemma": "Bild",
+      "page": 11
+    },
+    "noun-projekt": {
+      "lemma": "Projekt",
+      "page": 23
+    },
+    "noun-angebot": {
+      "lemma": "Angebot",
+      "page": 8
+    },
+    "noun-beispiel": {
+      "lemma": "Beispiel",
+      "page": 5
+    },
+    "noun-euro": {
+      "lemma": "Euro",
+      "page": 6
+    },
+    "noun-ziel": {
+      "lemma": "Ziel",
+      "page": 31
+    },
+    "noun-kirche": {
+      "lemma": "Kirche",
+      "page": 19
+    },
+    "noun-datum": {
+      "lemma": "Datum",
+      "page": 6
+    },
+    "noun-woche": {
+      "lemma": "Woche",
+      "page": 7
+    },
+    "noun-ende": {
+      "lemma": "Ende",
+      "page": 13
+    },
+    "noun-person": {
+      "lemma": "Person",
+      "page": 23
+    },
+    "noun-problem": {
+      "lemma": "Problem",
+      "page": 23
+    },
+    "noun-internet": {
+      "lemma": "Internet",
+      "page": 18
+    },
+    "noun-ort": {
+      "lemma": "Ort",
+      "page": 22
+    },
+    "noun-produkt": {
+      "lemma": "Produkt",
+      "page": 23
+    },
+    "noun-geschichte": {
+      "lemma": "Geschichte",
+      "page": 16
+    },
+    "noun-familie": {
+      "lemma": "Familie",
+      "page": 14
+    },
+    "noun-name": {
+      "lemma": "Name",
+      "page": 21
+    },
+    "noun-erfahrung": {
+      "lemma": "Erfahrung",
+      "page": 14
+    },
+    "noun-schule": {
+      "lemma": "Schule",
+      "page": 25
+    },
+    "noun-mann": {
+      "lemma": "Mann",
+      "page": 20
+    },
+    "noun-artikel": {
+      "lemma": "Artikel",
+      "page": 9
+    },
+    "noun-preis": {
+      "lemma": "Preis",
+      "page": 23
+    },
+    "noun-programm": {
+      "lemma": "Programm",
+      "page": 23
+    },
+    "noun-wort": {
+      "lemma": "Wort",
+      "page": 31
+    },
+    "noun-herr": {
+      "lemma": "Herr",
+      "page": 17
+    },
+    "noun-gruppe": {
+      "lemma": "Gruppe",
+      "page": 16
+    },
+    "noun-aufgabe": {
+      "lemma": "Aufgabe",
+      "page": 5
+    },
+    "noun-platz": {
+      "lemma": "Platz",
+      "page": 23
+    },
+    "noun-hilfe": {
+      "lemma": "Hilfe",
+      "page": 17
+    },
+    "noun-mitarbeiter": {
+      "lemma": "Mitarbeiter",
+      "page": 21
+    },
+    "noun-jugendliche": {
+      "lemma": "Jugendliche",
+      "page": 18
+    },
+    "noun-text": {
+      "lemma": "Text",
+      "page": 5
+    },
+    "noun-geld": {
+      "lemma": "Geld",
+      "page": 16
+    },
+    "noun-idee": {
+      "lemma": "Idee",
+      "page": 18
+    },
+    "noun-raum": {
+      "lemma": "Raum",
+      "page": 23
+    },
+    "noun-stunde": {
+      "lemma": "Stunde",
+      "page": 7
+    },
+    "noun-hand": {
+      "lemma": "Hand",
+      "page": 17
+    },
+    "noun-juni": {
+      "lemma": "Juni",
+      "page": 6
+    },
+    "noun-stelle": {
+      "lemma": "Stelle",
+      "page": 26
+    },
+    "noun-mai": {
+      "lemma": "Mai",
+      "page": 6
+    },
+    "noun-spiel": {
+      "lemma": "Spiel",
+      "page": 26
+    },
+    "noun-eltern": {
+      "lemma": "Eltern",
+      "page": 5
+    },
+    "noun-foto": {
+      "lemma": "Foto",
+      "page": 15
+    },
+    "noun-interesse": {
+      "lemma": "Interesse",
+      "page": 18
+    },
+    "noun-verein": {
+      "lemma": "Verein",
+      "page": 28
+    },
+    "noun-freund": {
+      "lemma": "Freund",
+      "page": 15
+    },
+    "noun-film": {
+      "lemma": "Film",
+      "page": 14
+    },
+    "noun-hotel": {
+      "lemma": "Hotel",
+      "page": 17
+    },
+    "noun-gast": {
+      "lemma": "Gast",
+      "page": 15
+    },
+    "noun-kontakt": {
+      "lemma": "Kontakt",
+      "page": 19
+    },
+    "noun-schüler": {
+      "lemma": "Schüler",
+      "page": 25
+    },
+    "noun-anfang": {
+      "lemma": "Anfang",
+      "page": 8
+    },
+    "noun-webseite": {
+      "lemma": "Webseite",
+      "page": 30
+    },
+    "noun-minute": {
+      "lemma": "Minute",
+      "page": 7
+    },
+    "noun-wunsch": {
+      "lemma": "Wunsch",
+      "page": 31
+    },
+    "noun-punkt": {
+      "lemma": "Punkt",
+      "page": 5
+    },
+    "noun-lösung": {
+      "lemma": "Lösung",
+      "page": 5
+    },
+    "noun-körper": {
+      "lemma": "Körper",
+      "page": 19
+    },
+    "noun-qualität": {
+      "lemma": "Qualität",
+      "page": 23
+    },
+    "noun-april": {
+      "lemma": "April",
+      "page": 6
+    },
+    "noun-universität": {
+      "lemma": "Universität",
+      "page": 28
+    },
+    "noun-million": {
+      "lemma": "Million",
+      "page": 7
+    },
+    "noun-partner": {
+      "lemma": "Partner",
+      "page": 22
+    },
+    "noun-team": {
+      "lemma": "Team",
+      "page": 27
+    },
+    "noun-natur": {
+      "lemma": "Natur",
+      "page": 21
+    },
+    "noun-musik": {
+      "lemma": "Musik",
+      "page": 6
+    },
+    "noun-märz": {
+      "lemma": "März",
+      "page": 6
+    },
+    "noun-ausbildung": {
+      "lemma": "Ausbildung",
+      "page": 9
+    },
+    "noun-september": {
+      "lemma": "September",
+      "page": 6
+    },
+    "noun-antwort": {
+      "lemma": "Antwort",
+      "page": 8
+    },
+    "noun-sache": {
+      "lemma": "Sache",
+      "page": 24
+    },
+    "noun-situation": {
+      "lemma": "Situation",
+      "page": 26
+    },
+    "noun-zahl": {
+      "lemma": "Zahl",
+      "page": 31
+    },
+    "noun-auge": {
+      "lemma": "Auge",
+      "page": 9
+    },
+    "noun-firma": {
+      "lemma": "Firma",
+      "page": 14
+    },
+    "noun-leute": {
+      "lemma": "Leute",
+      "page": 20
+    },
+    "noun-e-mail": {
+      "lemma": "E-Mail",
+      "page": 13
+    },
+    "noun-sprache": {
+      "lemma": "Sprache",
+      "page": 26
+    },
+    "noun-markt": {
+      "lemma": "Markt",
+      "page": 20
+    },
+    "noun-gespräch": {
+      "lemma": "Gespräch",
+      "page": 16
+    },
+    "noun-oktober": {
+      "lemma": "Oktober",
+      "page": 6
+    },
+    "noun-autor": {
+      "lemma": "Autor",
+      "page": 5
+    },
+    "noun-spaß": {
+      "lemma": "Spaß",
+      "page": 26
+    },
+    "noun-kultur": {
+      "lemma": "Kultur",
+      "page": 19
+    },
+    "noun-farbe": {
+      "lemma": "Farbe",
+      "page": 14
+    },
+    "noun-tier": {
+      "lemma": "Tier",
+      "page": 27
+    },
+    "noun-arzt": {
+      "lemma": "Arzt",
+      "page": 5
+    },
+    "noun-reise": {
+      "lemma": "Reise",
+      "page": 24
+    },
+    "noun-november": {
+      "lemma": "November",
+      "page": 6
+    },
+    "verb-sein": {
+      "lemma": "sein",
+      "page": 25
+    },
+    "verb-haben": {
+      "lemma": "haben",
+      "page": 16
+    },
+    "verb-werden": {
+      "lemma": "werden",
+      "page": 30
+    },
+    "verb-gehen": {
+      "lemma": "gehen",
+      "page": 16
+    },
+    "verb-kommen": {
+      "lemma": "kommen",
+      "page": 19
+    },
+    "verb-machen": {
+      "lemma": "machen",
+      "page": 20
+    },
+    "verb-lernen": {
+      "lemma": "lernen",
+      "page": 20
+    },
+    "verb-wohnen": {
+      "lemma": "wohnen",
+      "page": 30
+    },
+    "verb-arbeiten": {
+      "lemma": "arbeiten",
+      "page": 9
+    },
+    "verb-sprechen": {
+      "lemma": "sprechen",
+      "page": 26
+    },
+    "verb-lesen": {
+      "lemma": "lesen",
+      "page": 20
+    },
+    "verb-essen": {
+      "lemma": "essen",
+      "page": 14
+    },
+    "verb-nehmen": {
+      "lemma": "nehmen",
+      "page": 21
+    },
+    "verb-sehen": {
+      "lemma": "sehen",
+      "page": 25
+    },
+    "verb-fahren": {
+      "lemma": "fahren",
+      "page": 14
+    },
+    "verb-schlafen": {
+      "lemma": "schlafen",
+      "page": 24
+    },
+    "verb-laufen": {
+      "lemma": "laufen",
+      "page": 20
+    },
+    "verb-trinken": {
+      "lemma": "trinken",
+      "page": 28
+    },
+    "verb-können": {
+      "lemma": "können",
+      "page": 19
+    },
+    "verb-geben": {
+      "lemma": "geben",
+      "page": 15
+    },
+    "verb-sollen": {
+      "lemma": "sollen",
+      "page": 26
+    },
+    "verb-müssen": {
+      "lemma": "müssen",
+      "page": 21
+    },
+    "verb-finden": {
+      "lemma": "finden",
+      "page": 14
+    },
+    "verb-lassen": {
+      "lemma": "lassen",
+      "page": 20
+    },
+    "verb-stehen": {
+      "lemma": "stehen",
+      "page": 26
+    },
+    "verb-wollen": {
+      "lemma": "wollen",
+      "page": 31
+    },
+    "verb-stellen": {
+      "lemma": "stellen",
+      "page": 26
+    },
+    "verb-mögen": {
+      "lemma": "mögen",
+      "page": 21
+    },
+    "verb-liegen": {
+      "lemma": "liegen",
+      "page": 20
+    },
+    "verb-sagen": {
+      "lemma": "sagen",
+      "page": 24
+    },
+    "verb-zeigen": {
+      "lemma": "zeigen",
+      "page": 31
+    },
+    "verb-bleiben": {
+      "lemma": "bleiben",
+      "page": 11
+    },
+    "verb-dürfen": {
+      "lemma": "dürfen",
+      "page": 13
+    },
+    "verb-bringen": {
+      "lemma": "bringen",
+      "page": 11
+    },
+    "verb-wissen": {
+      "lemma": "wissen",
+      "page": 30
+    },
+    "verb-setzen": {
+      "lemma": "sich setzen",
+      "page": 25
+    },
+    "verb-halten": {
+      "lemma": "halten",
+      "page": 17
+    },
+    "verb-tun": {
+      "lemma": "tun",
+      "page": 28
+    },
+    "verb-bekommen": {
+      "lemma": "bekommen",
+      "page": 10
+    },
+    "verb-gehören": {
+      "lemma": "gehören",
+      "page": 16
+    },
+    "verb-bestehen": {
+      "lemma": "bestehen",
+      "page": 11
+    },
+    "verb-schreiben": {
+      "lemma": "schreiben",
+      "page": 25
+    },
+    "verb-erreichen": {
+      "lemma": "erreichen",
+      "page": 14
+    },
+    "verb-suchen": {
+      "lemma": "suchen",
+      "page": 27
+    },
+    "verb-spielen": {
+      "lemma": "spielen",
+      "page": 26
+    },
+    "verb-beginnen": {
+      "lemma": "beginnen",
+      "page": 10
+    },
+    "verb-helfen": {
+      "lemma": "helfen",
+      "page": 17
+    },
+    "verb-brauchen": {
+      "lemma": "brauchen",
+      "page": 11
+    },
+    "verb-schaffen": {
+      "lemma": "schaffen",
+      "page": 24
+    },
+    "verb-kennen": {
+      "lemma": "kennen",
+      "page": 18
+    },
+    "verb-leben": {
+      "lemma": "leben",
+      "page": 20
+    },
+    "verb-heißen": {
+      "lemma": "heißen",
+      "page": 17
+    },
+    "verb-tragen": {
+      "lemma": "tragen",
+      "page": 27
+    },
+    "verb-freuen": {
+      "lemma": "sich freuen",
+      "page": 15
+    },
+    "verb-verstehen": {
+      "lemma": "verstehen",
+      "page": 29
+    },
+    "verb-denken": {
+      "lemma": "denken",
+      "page": 12
+    },
+    "verb-legen": {
+      "lemma": "legen",
+      "page": 20
+    },
+    "verb-erklären": {
+      "lemma": "erklären",
+      "page": 14
+    },
+    "verb-treffen": {
+      "lemma": "treffen",
+      "page": 27
+    },
+    "verb-nennen": {
+      "lemma": "nennen",
+      "page": 22
+    },
+    "verb-anbieten": {
+      "lemma": "anbieten",
+      "page": 8
+    },
+    "verb-fallen": {
+      "lemma": "fallen",
+      "page": 14
+    },
+    "verb-versuchen": {
+      "lemma": "versuchen",
+      "page": 29
+    },
+    "verb-fragen": {
+      "lemma": "fragen",
+      "page": 15
+    },
+    "verb-gewinnen": {
+      "lemma": "gewinnen",
+      "page": 16
+    },
+    "verb-informieren": {
+      "lemma": "sich informieren",
+      "page": 18
+    },
+    "verb-wählen": {
+      "lemma": "wählen",
+      "page": 29
+    },
+    "verb-bedeuten": {
+      "lemma": "bedeuten",
+      "page": 10
+    },
+    "verb-kaufen": {
+      "lemma": "kaufen",
+      "page": 18
+    },
+    "verb-glauben": {
+      "lemma": "glauben",
+      "page": 16
+    },
+    "verb-vorstellen": {
+      "lemma": "vorstellen",
+      "page": 29
+    },
+    "verb-empfehlen": {
+      "lemma": "empfehlen",
+      "page": 13
+    },
+    "verb-scheinen": {
+      "lemma": "scheinen",
+      "page": 24
+    },
+    "verb-meinen": {
+      "lemma": "meinen",
+      "page": 20
+    },
+    "verb-berichten": {
+      "lemma": "berichten",
+      "page": 10
+    },
+    "verb-besuchen": {
+      "lemma": "besuchen",
+      "page": 11
+    },
+    "verb-hören": {
+      "lemma": "hören",
+      "page": 17
+    },
+    "verb-fühlen": {
+      "lemma": "sich fühlen",
+      "page": 15
+    },
+    "verb-ändern": {
+      "lemma": "ändern",
+      "page": 8
+    },
+    "verb-wünschen": {
+      "lemma": "wünschen",
+      "page": 31
+    },
+    "verb-schließen": {
+      "lemma": "schließen",
+      "page": 25
+    },
+    "verb-verlieren": {
+      "lemma": "verlieren",
+      "page": 29
+    },
+    "verb-bauen": {
+      "lemma": "bauen",
+      "page": 10
+    },
+    "verb-beschreiben": {
+      "lemma": "beschreiben",
+      "page": 10
+    },
+    "verb-öffnen": {
+      "lemma": "öffnen",
+      "page": 22
+    },
+    "verb-liefern": {
+      "lemma": "liefern",
+      "page": 20
+    },
+    "verb-planen": {
+      "lemma": "planen",
+      "page": 23
+    },
+    "verb-fehlen": {
+      "lemma": "fehlen",
+      "page": 14
+    },
+    "verb-erzählen": {
+      "lemma": "erzählen",
+      "page": 14
+    },
+    "verb-passen": {
+      "lemma": "passen",
+      "page": 22
+    },
+    "verb-feiern": {
+      "lemma": "feiern",
+      "page": 14
+    },
+    "verb-warten": {
+      "lemma": "warten",
+      "page": 29
+    },
+    "verb-rufen": {
+      "lemma": "rufen",
+      "page": 24
+    },
+    "verb-erinnern": {
+      "lemma": "sich erinnern",
+      "page": 14
+    },
+    "verb-bestellen": {
+      "lemma": "bestellen",
+      "page": 11
+    },
+    "verb-bitten": {
+      "lemma": "bitten",
+      "page": 11
+    },
+    "verb-passieren": {
+      "lemma": "passieren",
+      "page": 22
+    },
+    "verb-sitzen": {
+      "lemma": "sitzen",
+      "page": 26
+    },
+    "verb-hoffen": {
+      "lemma": "hoffen",
+      "page": 17
+    },
+    "verb-zahlen": {
+      "lemma": "zahlen",
+      "page": 31
+    },
+    "verb-benutzen": {
+      "lemma": "benutzen",
+      "page": 10
+    },
+    "verb-teilen": {
+      "lemma": "teilen",
+      "page": 27
+    },
+    "verb-verkaufen": {
+      "lemma": "verkaufen",
+      "page": 29
+    },
+    "verb-lieben": {
+      "lemma": "lieben",
+      "page": 20
+    },
+    "verb-kosten": {
+      "lemma": "kosten",
+      "page": 19
+    },
+    "verb-sparen": {
+      "lemma": "sparen",
+      "page": 26
+    },
+    "verb-diskutieren": {
+      "lemma": "diskutieren",
+      "page": 12
+    },
+    "verb-stattfinden": {
+      "lemma": "stattfinden",
+      "page": 26
+    },
+    "verb-bestätigen": {
+      "lemma": "bestätigen",
+      "page": 11
+    },
+    "verb-sammeln": {
+      "lemma": "sammeln",
+      "page": 24
+    },
+    "verb-erlauben": {
+      "lemma": "erlauben",
+      "page": 14
+    },
+    "verb-herstellen": {
+      "lemma": "herstellen",
+      "page": 17
+    },
+    "verb-vergessen": {
+      "lemma": "vergessen",
+      "page": 28
+    }
+  }
+}

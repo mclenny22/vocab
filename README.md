@@ -2,10 +2,11 @@
 
 A minimal German vocabulary app made for Alex. Practice nouns, verbs, and possessives through multiple-choice, typing, articles, and one conjugation at a time.
 
-- Nouns, Verbs, Conjugations, Possessives, and Mixed modes with separate saved sessions.
+- Nouns, Verbs, Conjugations, Possessives, Cases, and Mixed modes with separate saved sessions.
+- Cases mixes Akkusativ, Dativ, and combined sentences. Tap articles into gaps; tap a placed block to undo.
 - Possessives covers every owner and all four cases, with sentence cues and explanations of the endings.
 - Conjugation choices pair a German pronoun with an English sentence and three forms of the same verb.
-- 222 nouns and 204 verbs, expanded from corpus frequency lists.
+- 144 nouns and 113 verbs, limited to everyday vocabulary through A2.
 - Pronouns rotate through all six present-tense forms over time.
 - Missed questions repeat with the same exercise and pronoun.
 - Light and dark themes, mobile layouts, and progress saved in the browser.
@@ -26,7 +27,7 @@ Serve the contents of `vocabulary-app/dist/` using any static web server. The ap
 
 ## Vocabulary
 
-The built-in list lives in `vocabulary-app/dist/deck.mjs`. Each noun has an English translation, German noun, and article. Each verb includes its infinitive and all six present-tense forms. The expansion uses Sketch Engine's top 200 nouns and verbs from German Web 2013, omitting nine proper names and abbreviations and retaining all original words. See [vocabulary sources and conventions](vocabulary-app/VOCABULARY.md). The app has no manual word editor.
+The built-in list lives in `vocabulary-app/dist/deck.mjs`. Each noun has an English translation, German noun, and article. Each verb includes its infinitive and all six present-tense forms. The expansion is filtered against Goethe-Institut's A2 word list, retaining the original everyday starter words. See [vocabulary sources and conventions](vocabulary-app/VOCABULARY.md). The app has no manual word editor.
 
 ## Tests
 

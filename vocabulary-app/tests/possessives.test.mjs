@@ -58,13 +58,14 @@ test('every full possessive session covers all owners, cases and noun categories
 
 test('possessive exercises stay out of vocabulary modes and their distractors', () => {
   assert.equal(wordsForMode(starterWords, 'possessives').length, 144);
-  const possessiveAnswers = new Set(possessiveWords.map(word => word.answer));
+  // The verb infinitive "sein" is also a possessive spelling; check provenance.
+  const vocabularyTranslations = new Set(wordsForMode(starterWords, 'mixed').map(translation));
   for (const mode of APP_MODES.filter(mode => mode !== 'possessives')) {
     assert.ok(wordsForMode(starterWords, mode).every(word => !isPossessive(word)));
     const session = makeSession(starterWords, { day: '2026-10-30', appMode: mode });
     assert.ok(session.cards.every(card => card.mode !== 'possessive-choose'));
     for (const card of session.cards.filter(card => card.mode === 'choose')) {
-      assert.ok(card.choices.every(choice => !possessiveAnswers.has(choice)));
+      assert.ok(card.choices.every(choice => vocabularyTranslations.has(choice)));
     }
   }
 });

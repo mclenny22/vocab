@@ -1,21 +1,24 @@
 import { POSSESSIVE_OWNERS, POSSESSIVE_CASES, POSSESSIVE_GENDERS } from './possessives.mjs';
+import { CASE_GROUPS, CASE_ARTICLES, caseSentence, validCaseWord, readCaseDraft } from './cases.mjs';
+import { retiredVocabulary, revisedVocabularyIds, previousTranslations } from './retired-vocabulary.mjs';
 
 export const MODES = ['choose', 'type', 'article'];
-export const APP_MODES = ['nouns', 'verbs', 'conjugations', 'possessives', 'mixed'];
+export const APP_MODES = ['nouns', 'verbs', 'conjugations', 'possessives', 'cases', 'mixed'];
 export const PERSONS = ['ich', 'du', 'er / sie / es', 'wir', 'ihr', 'sie / Sie'];
 export const CHOICE_PERSONS = ['ich', 'du', 'er', 'wir', 'ihr', 'sie'];
 export const SESSION_LENGTH = 15;
 export const STORAGE_KEY = 'german-daily.v1';
 export const isVerb = word => word?.kind === 'verb';
 export const isPossessive = word => word?.kind === 'possessive';
+export const isCase = word => word?.kind === 'case';
 export const isConjugation = card => card?.mode === 'conjugate' || card?.mode === 'conjugate-choose';
 export const practicePersons = word => word.practicePersons ?? PERSONS.map((_, index) => index);
 export const conjugationSubject = (card, word) => card.person === 2 && word.thirdPersonSubject === 'es'
   ? 'es' : (card.mode === 'conjugate-choose' ? CHOICE_PERSONS : PERSONS)[card.person];
 export const canChooseConjugation = word => isVerb(word) && Array.isArray(word.forms) && new Set(word.forms).size >= 3 &&
   Array.isArray(word.englishForms) && word.englishForms.length === PERSONS.length && word.englishForms.every(form => typeof form === 'string' && form.trim().length > 0 && form.length <= 160);
-export const translation = word => isPossessive(word) ? word.prompt.replace('___', word.answer) : isVerb(word) ? word.infinitive : `${word.article} ${word.noun}`;
-export const wordsForMode = (words, mode) => words.filter(word => mode === 'possessives' ? isPossessive(word) : !isPossessive(word) && (mode === 'conjugations' ? canChooseConjugation(word) : mode === 'mixed' || isVerb(word) === (mode === 'verbs')));
+export const translation = word => isCase(word) ? caseSentence(word) : isPossessive(word) ? word.prompt.replace('___', word.answer) : isVerb(word) ? word.infinitive : `${word.article} ${word.noun}`;
+export const wordsForMode = (words, mode) => words.filter(word => mode === 'cases' ? isCase(word) : mode === 'possessives' ? isPossessive(word) : !isPossessive(word) && !isCase(word) && (mode === 'conjugations' ? canChooseConjugation(word) : mode === 'mixed' || isVerb(word) === (mode === 'verbs')));
 export const expectedAnswer = (card, word) => card.mode === 'possessive-choose' ? word.answer : isConjugation(card) ? word.forms[card.person] : card.mode === 'article' ? word.article : translation(word);
 const conjugationPerson = (day, batch, index) => ((Math.floor(Date.parse(`${day}T12:00:00Z`) / 86400000) + batch) * 2 + index) % PERSONS.length;
 
@@ -55,6 +58,7 @@ export function makeSession(words, { day = localDay(), batch = 0, ids, modeOffse
     const phase = (index + modeOffset) % MODES.length;
     const preferVerb = (Math.floor(index / MODES.length) + phase) % 2 === 1;
     let preferred = appMode === 'mixed' ? remaining.findIndex(word => isVerb(word) === preferVerb) : 0;
+    if (appMode === 'cases' && !ids) preferred = remaining.findIndex(word => word.grammaticalCase === CASE_GROUPS[index % CASE_GROUPS.length]);
     if (appMode === 'possessives' && !ids) {
       const dayNumber = Math.floor(Date.parse(`${day}T12:00:00Z`) / 86400000);
       const owner = POSSESSIVE_OWNERS[(dayNumber + batch + index) % POSSESSIVE_OWNERS.length].id;
@@ -64,7 +68,7 @@ export function makeSession(words, { day = localDay(), batch = 0, ids, modeOffse
     const [word] = remaining.splice(preferred < 0 ? 0 : preferred, 1);
     const choiceTurn = (Math.floor(Date.parse(`${day}T12:00:00Z`) / 86400000 / 3) + batch + conjugationIndex) % 2 === 0;
     const grammarMode = choiceTurn && canChooseConjugation(word) ? 'conjugate-choose' : 'conjugate';
-    const mode = appMode === 'possessives' ? 'possessive-choose' : appMode === 'conjugations' ? 'conjugate-choose' : phase === 2 && isVerb(word) ? grammarMode : MODES[phase];
+    const mode = appMode === 'cases' ? 'case-complete' : appMode === 'possessives' ? 'possessive-choose' : appMode === 'conjugations' ? 'conjugate-choose' : phase === 2 && isVerb(word) ? grammarMode : MODES[phase];
     const card = { wordId: word.id, mode: retryModes[word.id] ?? mode };
     if (isConjugation(card)) {
       const person = conjugationPerson(day, batch, conjugationIndex);
@@ -82,7 +86,7 @@ export function makeSession(words, { day = localDay(), batch = 0, ids, modeOffse
     draft: ''
   };
   for (const card of session.cards) {
-    if (['choose', 'conjugate-choose', 'possessive-choose'].includes(card.mode)) card.choices = cardChoices(card, words, session);
+    if (['choose', 'conjugate-choose', 'possessive-choose', 'case-complete'].includes(card.mode)) card.choices = cardChoices(card, words, session);
   }
   return session;
 }
@@ -93,6 +97,11 @@ export function cardChoices(card, words, session) {
   if (card.mode === 'article') return ['der', 'die', 'das'];
   if (Array.isArray(card.choices)) return [...card.choices];
   const random = randomFromSeed(`${session.day}:${session.batch}:${word.id}:choices`);
+  if (card.mode === 'case-complete') {
+    const answers = word.slots.map(slot => slot.answer);
+    const alternatives = shuffled(CASE_ARTICLES.filter(article => !answers.includes(article)), random);
+    return shuffled([...answers, ...alternatives.slice(0, 4 - answers.length)], random);
+  }
   if (card.mode === 'possessive-choose') return shuffled(word.options, random);
   if (card.mode === 'conjugate-choose') {
     const answer = expectedAnswer(card, word);
@@ -101,7 +110,7 @@ export function cardChoices(card, words, session) {
   }
   const answer = translation(word);
   const sessionIds = new Set(session.cards.map(item => item.wordId));
-  const sameKind = words.filter(item => !isPossessive(item) && isVerb(item) === isVerb(word));
+  const sameKind = words.filter(item => !isPossessive(item) && !isCase(item) && isVerb(item) === isVerb(word));
   const outsideSession = sameKind.filter(item => !sessionIds.has(item.id));
   const pool = outsideSession.length >= 2 ? outsideSession : sameKind.filter(item => item.id !== word.id);
   const alternatives = [...new Set(pool.map(translation))].filter(item => item !== answer);
@@ -126,6 +135,12 @@ export function answerCard(session, words, rawAnswer) {
   const word = words.find(item => item.id === card.wordId);
   if (!word) return session;
   const result = checkAnswer(card, word, rawAnswer);
+  if (card.mode === 'case-complete') {
+    const draft = readCaseDraft(session.draft, word, cardChoices(card, words, session));
+    if (!result.correct) return { ...session, draft: JSON.stringify({ ...draft, checked: true, mistaken: true }) };
+    // Keep the first-attempt score so corrected sentences still appear in retries.
+    result.correct = !draft.mistaken;
+  }
   return { ...session, draft: '', answers: [...session.answers, { ...result, wordId: word.id, given: normalize(rawAnswer) }] };
 }
 
@@ -141,6 +156,7 @@ export function missedWords(session) {
 export function validWord(word) {
   if (!word || typeof word.id !== 'string' || !word.id.length || word.id.length > 100 ||
     typeof word.english !== 'string' || !word.english.trim().length || word.english.length > 80) return false;
+  if (isCase(word)) return validCaseWord(word);
   if (isPossessive(word)) return POSSESSIVE_OWNERS.some(owner => owner.id === word.owner) &&
     POSSESSIVE_CASES.includes(word.grammaticalCase) && POSSESSIVE_GENDERS.includes(word.gender) &&
     Number.isInteger(word.variant) && word.variant >= 0 && word.variant < 16 &&
@@ -163,15 +179,25 @@ function validSession(session, words) {
     !Array.isArray(session.answers) || ![session.index, Math.min(session.index + 1, session.cards.length)].includes(session.answers.length)) return false;
   const ids = new Set(words.map(word => word.id));
   const translations = new Set(words.map(translation));
-  return session.cards.every(card => card && ids.has(card.wordId) && [...MODES, 'conjugate', 'conjugate-choose', 'possessive-choose'].includes(card.mode) &&
-      (isPossessive(words.find(word => word.id === card.wordId)) === (card.mode === 'possessive-choose')) &&
-      (card.mode !== 'article' || !isVerb(words.find(word => word.id === card.wordId))) &&
-      (!isConjugation(card) || isVerb(words.find(word => word.id === card.wordId)) && Number.isInteger(card.person) && practicePersons(words.find(word => word.id === card.wordId)).includes(card.person)) &&
-      (card.mode !== 'conjugate-choose' || canChooseConjugation(words.find(word => word.id === card.wordId)) && Array.isArray(card.choices)) &&
-      (card.mode !== 'possessive-choose' || Array.isArray(card.choices)) &&
-      (card.choices === undefined || Array.isArray(card.choices) && card.choices.length === 3 &&
-        new Set(card.choices).size === 3 && card.choices.every(choice => card.mode === 'possessive-choose' ? words.find(word => word.id === card.wordId).options.includes(choice) : card.mode === 'conjugate-choose' ? words.find(word => word.id === card.wordId).forms.includes(choice) : translations.has(choice)) &&
-        card.choices.includes(expectedAnswer(card, words.find(word => word.id === card.wordId))))) &&
+  return session.cards.every(card => {
+      if (!card || !ids.has(card.wordId) || ![...MODES, 'conjugate', 'conjugate-choose', 'possessive-choose', 'case-complete'].includes(card.mode)) return false;
+      const word = words.find(word => word.id === card.wordId);
+      if (isCase(word) || card.mode === 'case-complete') {
+        if (!isCase(word) || card.mode !== 'case-complete' || !Array.isArray(card.choices) || card.choices.length !== 4) return false;
+        const answers = word.slots.map(slot => slot.answer);
+        return card.choices.every(choice => CASE_ARTICLES.includes(choice) &&
+          card.choices.filter(value => value === choice).length === Math.max(1, answers.filter(value => value === choice).length)) &&
+          answers.every(choice => card.choices.includes(choice));
+      }
+      return isPossessive(word) === (card.mode === 'possessive-choose') &&
+        (card.mode !== 'article' || !isVerb(word)) &&
+        (!isConjugation(card) || isVerb(word) && Number.isInteger(card.person) && practicePersons(word).includes(card.person)) &&
+        (card.mode !== 'conjugate-choose' || canChooseConjugation(word) && Array.isArray(card.choices)) &&
+        (card.mode !== 'possessive-choose' || Array.isArray(card.choices)) &&
+        (card.choices === undefined || Array.isArray(card.choices) && card.choices.length === 3 &&
+          new Set(card.choices).size === 3 && card.choices.every(choice => card.mode === 'possessive-choose' ? word.options.includes(choice) : card.mode === 'conjugate-choose' ? word.forms.includes(choice) : translations.has(choice)) &&
+          card.choices.includes(expectedAnswer(card, word)));
+    }) &&
     new Set(session.cards.map(card => card.wordId)).size === session.cards.length &&
     session.answers.every((answer, index) => {
       if (!answer || answer.wordId !== session.cards[index].wordId || typeof answer.correct !== 'boolean' || typeof answer.note !== 'string') return false;
@@ -208,6 +234,37 @@ function migrateConjugations(saved, words) {
   return { ...saved, cards, answers, draft };
 }
 
+function migrateVocabularySession(saved, words) {
+  if (!Array.isArray(saved?.cards) || !Array.isArray(saved.answers) || !Number.isInteger(saved.index) || saved.index < 0 || saved.index > saved.cards.length ||
+      ![saved.index, Math.min(saved.index + 1, saved.cards.length)].includes(saved.answers.length)) return saved;
+  const byId = new Map(words.map(word => [word.id, word]));
+  const removedIds = new Set(retiredVocabulary.map(word => word.id));
+  const oldTranslations = new Set([...retiredVocabulary.map(word => word.translation), ...previousTranslations]);
+  const currentTranslations = new Set(words.map(translation));
+  const kept = saved.cards.map((card, index) => ({ card, index })).filter(({ card }) => {
+    const word = byId.get(card?.wordId);
+    if (!word && removedIds.has(card?.wordId)) return false;
+    return !word || !revisedVocabularyIds.includes(word.id) || !isConjugation(card) || practicePersons(word).includes(card.person);
+  });
+  const migrated = {
+    ...saved,
+    cards: kept.map(({ card }) => card),
+    answers: kept.filter(({ index }) => index < saved.answers.length).map(({ index }) => saved.answers[index]),
+    index: kept.filter(({ index }) => index < saved.index).length,
+    draft: kept.some(({ index }) => index === saved.index) ? saved.draft : ''
+  };
+  migrated.cards = migrated.cards.map(card => {
+    const word = byId.get(card?.wordId);
+    if (!word || !Array.isArray(card.choices)) return card;
+    const staleTranslation = card.mode === 'choose' && card.choices.some(choice => oldTranslations.has(choice) && !currentTranslations.has(choice));
+    const staleConjugation = card.mode === 'conjugate-choose' && revisedVocabularyIds.includes(word.id) && card.choices.some(choice => !word.forms.includes(choice));
+    if (!staleTranslation && !staleConjugation) return card;
+    const { choices, ...updated } = card;
+    return { ...updated, choices: cardChoices(updated, words, migrated) };
+  });
+  return migrated;
+}
+
 export function readState(raw, starterWords, day = localDay()) {
   let data;
   try { data = JSON.parse(raw); } catch { data = null; }
@@ -223,10 +280,14 @@ export function readState(raw, starterWords, day = localDay()) {
   const sessions = {};
   for (const mode of APP_MODES) {
     const pool = wordsForMode(words, mode);
-    const saved = migrateConjugations(data?.version === 1 && mode === 'nouns' ? data.session : data?.sessions?.[mode], pool);
+    const saved = migrateVocabularySession(migrateConjugations(data?.version === 1 && mode === 'nouns' ? data.session : data?.sessions?.[mode], pool), pool);
     const draft = typeof saved?.draft === 'string' ? saved.draft.slice(0, 160) : '';
     sessions[mode] = [1, 2].includes(data?.version) && saved?.day === day && validSession(saved, pool)
       ? { ...saved, draft } : makeSession(words, { day, appMode: mode });
+    const current = sessions[mode].cards[sessions[mode].index];
+    if (current?.mode === 'case-complete' && sessions[mode].draft) {
+      sessions[mode].draft = JSON.stringify(readCaseDraft(sessions[mode].draft, pool.find(word => word.id === current.wordId), current.choices));
+    }
   }
   const state = {
     version: 2, appMode, sessions,

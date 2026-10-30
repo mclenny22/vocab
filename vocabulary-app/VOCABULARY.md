@@ -1,29 +1,30 @@
 # Vocabulary sources and conventions
 
-The deck contains **222 nouns and 204 verbs**. It combines the original 36 nouns and 18 verbs with frequency-based additions. All original IDs, translations, articles, conjugations and English cues are preserved so existing saved sessions remain valid.
+The active vocabulary deck contains **144 nouns and 113 verbs** for everyday practice through **A2**. It retains the original 36 nouns and 18 verbs. The earlier expansion was narrowed by level rather than padded to reach 200 entries per word type.
 
-## Frequency source
+## A2 selection
 
-Selection uses [Sketch Engine's German word lists](https://www.sketchengine.eu/german-word-list/), downloaded on 30 October 2026:
+Additions are checked against the official [Goethe-Zertifikat A2 word list](https://www.goethe.de/pro/relaunch/prf/de/Goethe-Zertifikat_A2_Wortliste.pdf), accessed on 30 October 2026, edition identifier `A2_Wortliste_04_050526`. The document includes both alphabetical headwords and thematic groups for occupations, family, dates, months, currency and numbers. Normalized entries include **Fahrrad** from **(Fahr)Rad**, **fahren** from **(ab)fahren**, and **E-Mail** from **(E-)Mail**.
 
-- [Top 200 noun lemmas](https://www.sketchengine.eu/wp-content/uploads/word-list/german/german-word-list-nouns.csv)
-- [Top 200 verb lemmas](https://www.sketchengine.eu/wp-content/uploads/word-list/german/german-word-list-verbs.csv)
+Every addition has a reviewed entry and a PDF page reference in `tests/fixtures/a2-admissions.json`. That file records only admission evidence for this app's selected words, rather than reproducing the source's sentences or complete word list. The original everyday starter words are retained; **Erdbeere** is the sole starter entry without a direct entry in this A2 reference and is retained as a familiar food word by editorial judgment. This is a selection of beginner vocabulary, not the complete A2 syllabus or an assertion that Alex has already encountered every entry.
 
-The files identify their corpus as **German Web 2013** (deTenTen13). These are lemmatized lists: inflected forms contribute to the frequency of a single dictionary headword. This is a ranking from a web-text corpus, not a universal ranking of spoken German. Different corpora produce different orders.
-
-All 200 verb lemmas are represented. The noun additions include 191 of the source's top 200 entries. The nine excluded proper names or abbreviations are **Deutschland, Berlin, Dr, Europa, Google, GmbH, München, Schweiz, Hamburg**. Most do not fit article practice for common nouns. Keeping the original everyday vocabulary brings the totals above 200 in each category.
-
-`frequencyRank` records the original rank within the noun or verb list. Original words outside the top 200 have no rank. Entries retain their original order and append additions in source order; sessions continue to shuffle eligible words. The source lemmas are preserved in `tests/fixtures/frequency-lemmas.json` for coverage checks.
+The original frequency expansion used [Sketch Engine's German word lists](https://www.sketchengine.eu/german-word-list/) from German Web 2013. `frequencyRank`, where present, remains historical metadata. Frequency alone no longer qualifies an entry for practice. Examples removed by the A2 review include **Anspruch, Verfügung, Maßnahme, Zusammenhang, ermöglichen, veröffentlichen** and **durchführen**.
 
 ## Learning data
 
-The frequency lists supply selection and rank. English translations, noun articles, present-tense forms and English conjugation cues were added for this app. They represent a selected common sense, rather than every meaning or valid spelling variant.
+English translations, articles, present-tense forms and English cues are app-authored. A source-listed headword is used with a beginner-appropriate sense:
 
-- Nouns normally use the singular. **Eltern, Kosten, Leute** use their usual plural forms and the plural article **die**. **Der Jugendliche** is an adjectival noun in its definite masculine form. Translations identify male personal nouns where useful.
-- Verbs store all six present-indicative forms in the order **ich, du, er/sie/es, wir, ihr, sie/Sie**. Stem changes, umlauts, inserted **e**, and modal irregularities are explicit.
-- Separable verbs include the detached prefix in the answer: **ich biete an**, **du nimmst auf**, **er stellt her**.
-- Reflexive senses use the full infinitive **sich freuen**, **sich befinden**, **sich eignen**, and person-specific reflexive objects in their answers: **freue mich**, **befindest dich**, **eignen uns**.
-- The selected senses of **gelten, erfolgen, gelingen, betragen, geschehen, stattfinden** practice only third-person singular and plural. Their singular subject is **es**, paired with **It**, so prompts refer to rules, events or quantities. Other verbs continue to rotate through all six persons.
-- Reference checks for less familiar forms and usage include [Duden: geschehen](https://www.duden.de/rechtschreibung/geschehen), [PONS: gelten](https://de.pons.com/%C3%BCbersetzung/deutsche-rechtschreibung/gelten), and [PONS: Teil](https://de.pons.com/%C3%BCbersetzung/deutsche-rechtschreibung/Teil).
+- **Bestehen** practices passing an exam, **schaffen** managing a task, **wählen** choosing or dialing, and **scheinen** shining.
+- **Passieren** means happening and **kosten** costing; their previous passing-a-place and tasting cues were removed. These senses, **scheinen**, and **stattfinden** practice **es / It** and **sie / They**, avoiding personal subjects for events or prices.
+- Reflexive senses use full infinitives and person-specific objects: **sich freuen**, **sich setzen**, **sich informieren**, **sich fühlen**, **sich erinnern**. Answers include phrases such as **freue mich**, **setzen uns**, and **erinnert euch**.
+- Separable verbs retain their detached prefix: **biete an**, **stellt vor**, **stellen her**.
+- Verbs store all six present-indicative forms in the order **ich, du, er/sie/es, wir, ihr, sie/Sie**, with explicit irregular forms and matching English cues.
+- Nouns normally use the singular. **Eltern** and **Leute** use plural forms with **die**. **Der Jugendliche** uses the definite masculine adjectival form. Translations identify male personal nouns where useful.
 
-The app's existing spelling rules still apply: complete expected phrases are required, capitalization differences are accepted, and alternative synonyms or conjugation variants are not automatically accepted.
+Complete expected phrases are required. Capitalization differences are accepted; alternative synonyms and conjugation variants are not automatically accepted.
+
+## Saved progress
+
+Original IDs and original learning data remain intact. Removed vocabulary is absent from new sessions and distractors. `dist/retired-vocabulary.mjs` contains only identifiers and old German answers needed for save migration; it is not a practice deck.
+
+An existing session loses retired cards, retains answers for the remaining cards, and moves its current position accordingly. A draft survives if its current card remains. Retired distractors and outdated conjugation choices are regenerated from eligible vocabulary. Revised event senses discard old conjugation cards with unsuitable personal subjects. A session with no remaining cards restarts; other modes and preferences stay saved. The independent possessive and case exercise decks are unchanged by this vocabulary revision.

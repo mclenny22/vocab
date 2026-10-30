@@ -6,24 +6,26 @@ import { APP_MODES, validWord, practicePersons, conjugationSubject, makeSession,
 
 const frequency = JSON.parse(readFileSync(new URL('./fixtures/frequency-lemmas.json', import.meta.url), 'utf8'));
 const original = JSON.parse(readFileSync(new URL('./fixtures/original-deck.json', import.meta.url), 'utf8'));
-const excludedNouns = ['Deutschland', 'Berlin', 'Dr', 'Europa', 'Google', 'GmbH', 'München', 'Schweiz', 'Hamburg'];
+const admissions = JSON.parse(readFileSync(new URL('./fixtures/a2-admissions.json', import.meta.url), 'utf8'));
 
-test('the deck covers the source top 200 verbs and all common nouns in its top 200', () => {
-  assert.equal(frequency.nouns.length, 200);
-  assert.equal(frequency.verbs.length, 200);
-  for (const [index, lemma] of frequency.nouns.entries()) {
-    if (excludedNouns.includes(lemma)) continue;
-    const word = starterNouns.find(word => word.noun === lemma);
-    assert.ok(word, lemma);
-    assert.equal(word.frequencyRank, index + 1, lemma);
+test('every addition has reviewed A2 admission evidence and the deck excludes advanced frequency words', () => {
+  const vocabulary = [...starterNouns, ...starterVerbs];
+  assert.equal(starterNouns.length, 144);
+  assert.equal(starterVerbs.length, 113);
+  assert.equal(Object.keys(admissions.words).length, vocabulary.length);
+  for (const word of vocabulary) {
+    const evidence = admissions.words[word.id];
+    assert.equal(evidence.lemma, word.noun ?? word.infinitive, word.id);
+    if (!original.nouns.some(old => old.id === word.id) && !original.verbs.some(old => old.id === word.id)) {
+      assert.ok(Number.isInteger(evidence.page) && evidence.page >= 5 && evidence.page <= 31, word.id);
+    }
+    if (word.frequencyRank) {
+      const lemma = word.noun ?? word.infinitive.replace(/^sich /, '');
+      assert.equal(frequency[word.noun ? 'nouns' : 'verbs'][word.frequencyRank - 1], lemma);
+    }
   }
-  for (const [index, lemma] of frequency.verbs.entries()) {
-    const word = starterVerbs.find(word => word.infinitive.replace(/^sich /, '') === lemma);
-    assert.ok(word, lemma);
-    assert.equal(word.frequencyRank, index + 1, lemma);
-  }
-  assert.equal(starterNouns.length, 222);
-  assert.equal(starterVerbs.length, 204);
+  for (const lemma of ['Anspruch', 'Verfügung', 'Maßnahme', 'Zusammenhang']) assert.ok(!starterNouns.some(word => word.noun === lemma));
+  for (const lemma of ['ermöglichen', 'veröffentlichen', 'durchführen', 'sich eignen']) assert.ok(!starterVerbs.some(word => word.infinitive === lemma));
   assert.equal(new Set(starterWords.map(word => word.id)).size, starterWords.length);
   assert.equal(new Set(starterNouns.map(word => word.noun)).size, starterNouns.length);
   assert.equal(new Set(starterVerbs.map(word => word.infinitive)).size, starterVerbs.length);
@@ -43,7 +45,7 @@ test('a save from the original deck keeps progress, drafts and exact choices in 
   const legacyWords = [...original.nouns, ...original.verbs];
   const oldState = readState(null, legacyWords, '2026-10-30');
   oldState.theme = 'dark';
-  for (const mode of APP_MODES.filter(mode => mode !== 'possessives')) {
+  for (const mode of APP_MODES.filter(mode => !['possessives', 'cases'].includes(mode))) {
     oldState.appMode = mode;
     const card = oldState.session.cards[0];
     const word = legacyWords.find(word => word.id === card.wordId);
@@ -51,7 +53,7 @@ test('a save from the original deck keeps progress, drafts and exact choices in 
     oldState.session.draft = 'partly typed';
   }
   const restored = readState(JSON.stringify(oldState), starterWords, '2026-10-30');
-  for (const mode of APP_MODES.filter(mode => mode !== 'possessives')) {
+  for (const mode of APP_MODES.filter(mode => !['possessives', 'cases'].includes(mode))) {
     assert.deepEqual(restored.sessions[mode], oldState.sessions[mode]);
   }
   assert.equal(restored.theme, oldState.theme);
@@ -64,10 +66,10 @@ test('a save from the original deck keeps progress, drafts and exact choices in 
 test('separable and reflexive verbs require their complete phrase', () => {
   for (const [infinitive, person, expected, partial] of [
     ['anbieten', 1, 'bietest an', 'bietest'],
-    ['aufnehmen', 2, 'nimmt auf', 'nimmt'],
+    ['herstellen', 2, 'stellt her', 'stellt'],
     ['sich freuen', 0, 'freue mich', 'freue'],
-    ['sich befinden', 3, 'befinden uns', 'befinden'],
-    ['sich eignen', 4, 'eignet euch', 'eignet']
+    ['sich fühlen', 3, 'fühlen uns', 'fühlen'],
+    ['sich erinnern', 4, 'erinnert euch', 'erinnert']
   ]) {
     const word = starterVerbs.find(word => word.infinitive === infinitive);
     const card = { wordId: word.id, mode: 'conjugate', person };
@@ -77,7 +79,7 @@ test('separable and reflexive verbs require their complete phrase', () => {
   }
 });
 
-test('event and quantity senses practice es/sie, with matching cues, feedback and stable retries', () => {
+test('event, weather and quantity senses practice es/sie, with matching cues, feedback and stable retries', () => {
   for (const word of starterVerbs.filter(word => word.practicePersons)) {
     assert.deepEqual(practicePersons(word), [2, 5]);
     assert.ok(word.englishForms[2].startsWith('It '));
@@ -105,7 +107,7 @@ test('event and quantity senses practice es/sie, with matching cues, feedback an
 });
 
 test('invalid person restrictions cannot enter the saved vocabulary', () => {
-  const word = starterVerbs.find(word => word.infinitive === 'geschehen');
+  const word = starterVerbs.find(word => word.infinitive === 'stattfinden');
   for (const practicePersons of [[], [6], [-1], [2, 2], ['2'], 'third']) {
     assert.equal(validWord({ ...word, practicePersons }), false);
   }
@@ -114,4 +116,66 @@ test('invalid person restrictions cannot enter the saved vocabulary', () => {
   state.session.cards[0] = { wordId: word.id, mode: 'conjugate-choose', person: 0, choices: word.forms.slice(0, 3) };
   const restored = readState(JSON.stringify(state), starterWords, '2026-10-30');
   assert.notDeepEqual(restored.session.cards, state.session.cards);
+});
+
+test('narrowing to A2 removes retired cards and distractors while preserving retained progress', () => {
+  const retired = [
+    { id: 'noun-anspruch', english: 'the claim', noun: 'Anspruch', article: 'der' },
+    { id: 'noun-verfügung', english: 'the decree', noun: 'Verfügung', article: 'die' }
+  ];
+  const state = readState(null, [...starterWords, ...retired], '2026-10-30');
+  state.theme = 'dark';
+  state.sessions.nouns = {
+    day: '2026-10-30', batch: 2, index: 3, draft: 'old draft',
+    cards: [
+      { wordId: 'key', mode: 'choose', choices: ['der Schlüssel', 'die Verfügung', 'das Fenster'] },
+      { wordId: 'noun-anspruch', mode: 'type' },
+      { wordId: 'window', mode: 'type' },
+      { wordId: 'noun-verfügung', mode: 'article' },
+      { wordId: 'door', mode: 'type' }
+    ],
+    answers: [
+      { wordId: 'key', given: 'der Schlüssel', correct: true, note: '' },
+      { wordId: 'noun-anspruch', given: 'wrong', correct: false, note: 'der Anspruch' },
+      { wordId: 'window', given: 'das Fenster', correct: true, note: '' }
+    ]
+  };
+  const restored = readState(JSON.stringify(state), starterWords, '2026-10-30');
+  assert.deepEqual(restored.sessions.nouns.cards.map(card => card.wordId), ['key', 'window', 'door']);
+  assert.equal(restored.sessions.nouns.index, 2);
+  assert.equal(restored.sessions.nouns.batch, 2);
+  assert.equal(restored.sessions.nouns.draft, '');
+  assert.deepEqual(restored.sessions.nouns.answers, [state.sessions.nouns.answers[0], state.sessions.nouns.answers[2]]);
+  assert.ok(!restored.sessions.nouns.cards[0].choices.includes('die Verfügung'));
+  assert.equal(restored.sessions.nouns.cards[0].choices.length, 3);
+  assert.equal(restored.theme, 'dark');
+  assert.deepEqual(restored.sessions.possessives, state.sessions.possessives);
+  assert.deepEqual(restored.sessions.cases, state.sessions.cases);
+  assert.deepEqual(readState(JSON.stringify(restored), starterWords, '2026-10-30'), restored);
+  state.sessions.nouns.index = 2;
+  state.sessions.nouns.answers = state.sessions.nouns.answers.slice(0, 2);
+  state.sessions.nouns.draft = 'das Fen';
+  const drafting = readState(JSON.stringify(state), starterWords, '2026-10-30');
+  assert.equal(drafting.sessions.nouns.index, 1);
+  assert.equal(drafting.sessions.nouns.draft, 'das Fen');
+});
+
+test('revised beginner senses replace outdated choices and avoid personal prompts for events', () => {
+  const state = readState(null, starterWords, '2026-10-30');
+  state.appMode = 'verbs';
+  state.session = {
+    day: '2026-10-30', batch: 0, index: 0, draft: '', answers: [],
+    cards: [
+      { wordId: 'verb-fühlen', mode: 'conjugate-choose', person: 0, choices: ['fühle', 'fühlst', 'fühlt'] },
+      { wordId: 'verb-passieren', mode: 'conjugate', person: 0 },
+      { wordId: 'verb-gehen', mode: 'choose', choices: ['gehen', 'setzen', 'schreiben'] }
+    ]
+  };
+  const restored = readState(JSON.stringify(state), starterWords, '2026-10-30');
+  assert.deepEqual(restored.session.cards.map(card => card.wordId), ['verb-fühlen', 'verb-gehen']);
+  assert.ok(restored.session.cards[0].choices.includes('fühle mich'));
+  assert.ok(!restored.session.cards[1].choices.includes('setzen'));
+  assert.equal(starterVerbs.find(word => word.id === 'verb-passieren').english, 'to happen');
+  assert.equal(starterVerbs.find(word => word.id === 'verb-kosten').english, 'to cost');
+  assert.equal(starterVerbs.find(word => word.id === 'verb-erinnern').infinitive, 'sich erinnern');
 });

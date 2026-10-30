@@ -1,5 +1,7 @@
 import { starterWords } from './deck.mjs';
 import { createConfetti } from './confetti.mjs';
+import { CASE_LABELS } from './cases.mjs';
+import { renderCasePractice } from './case-practice.mjs';
 import { MODES, STORAGE_KEY, isVerb, isConjugation, conjugationSubject, translation, expectedAnswer, localDay, makeSession, cardChoices, answerCard, advanceCard, missedWords, readState } from './core.mjs';
 
 const practice = document.getElementById('practice');
@@ -53,7 +55,7 @@ function submit(value) {
   if (!ensureToday() || !value.trim()) return;
   state.session = answerCard(state.session, words(), value);
   save(); render();
-  practice.querySelector('.next-action')?.focus({ preventScroll: true });
+  (practice.querySelector('.next-action') || practice.querySelector('.case-slot.incorrect'))?.focus({ preventScroll: true });
 }
 function next() {
   if (!ensureToday()) return;
@@ -79,7 +81,7 @@ function startSession(retryOnly = false) {
   practice.querySelector('.prompt')?.focus({ preventScroll: true });
 }
 function render() {
-  const modeLabel = { nouns: 'Nouns', verbs: 'Verbs', conjugations: 'Conjugations', possessives: 'Possessives', mixed: 'Mixed' }[state.appMode];
+  const modeLabel = { nouns: 'Nouns', verbs: 'Verbs', conjugations: 'Conjugations', possessives: 'Possessives', cases: 'Cases', mixed: 'Mixed' }[state.appMode];
   modeTrigger.querySelector('.filter-label').textContent = modeLabel;
   modeTrigger.setAttribute('aria-label', `Practice mode: ${modeLabel}`);
   for (const item of modeItems) {
@@ -89,11 +91,12 @@ function render() {
   }
   const session = state.session;
   const card = session.cards[session.index];
+  const word = card ? words().find(item => item.id === card.wordId) : null;
   if (card) confetti.clear();
   practice.replaceChildren();
   practice.classList.toggle('completion', !card);
   const top = element('div', 'study-top');
-  top.append(element('span', '', card ? { choose: 'Choose', type: 'Type', article: 'Article', conjugate: 'Conjugate', 'conjugate-choose': 'Conjugate', 'possessive-choose': 'Possessive' }[card.mode] : 'Today'));
+  top.append(element('span', '', card?.mode === 'case-complete' ? CASE_LABELS[word.grammaticalCase] : card ? { choose: 'Choose', type: 'Type', article: 'Article', conjugate: 'Conjugate', 'conjugate-choose': 'Conjugate', 'possessive-choose': 'Possessive' }[card.mode] : 'Today'));
   const counter = element('span', 'counter', `${Math.min(session.index + 1, session.cards.length)} / ${session.cards.length}`);
   counter.setAttribute('aria-label', card ? `Card ${session.index + 1} of ${session.cards.length}` : `${session.cards.length} cards completed`);
   top.append(counter);
@@ -118,8 +121,18 @@ function render() {
     controls.append(button('More practice', missed.length ? 'secondary' : 'primary', () => startSession()));
     return;
   }
-  const word = words().find(item => item.id === card.wordId);
   const answer = session.answers[session.index];
+  if (card.mode === 'case-complete') {
+    renderCasePractice({ word, card, session, face, prompt, controls, onCheck: submit, onNext: next,
+      onDraft(draft, focusSelector) {
+        if (!ensureToday()) return;
+        state.session = { ...state.session, draft: JSON.stringify(draft) };
+        save(); render();
+        practice.querySelector(focusSelector)?.focus({ preventScroll: true });
+      }
+    });
+    return;
+  }
   prompt.textContent = isConjugation(card) ? `${conjugationSubject(card, word)} ___` : card.mode === 'article' ? answer ? translation(word) : `___ ${word.noun}` : word.english;
   if (card.mode === 'article') {
     prompt.lang = 'de';
