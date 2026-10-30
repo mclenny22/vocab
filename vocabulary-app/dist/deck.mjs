@@ -39,24 +39,24 @@ export const starterNouns = [
 
 // Present indicative, in order: ich, du, er/sie/es, wir, ihr, sie/Sie.
 export const starterVerbs = [
-  { id: 'verb-sein', kind: 'verb', english: 'to be', infinitive: 'sein', forms: ['bin', 'bist', 'ist', 'sind', 'seid', 'sind'] },
-  { id: 'verb-haben', kind: 'verb', english: 'to have', infinitive: 'haben', forms: ['habe', 'hast', 'hat', 'haben', 'habt', 'haben'] },
-  { id: 'verb-werden', kind: 'verb', english: 'to become', infinitive: 'werden', forms: ['werde', 'wirst', 'wird', 'werden', 'werdet', 'werden'] },
-  { id: 'verb-gehen', kind: 'verb', english: 'to go', infinitive: 'gehen', forms: ['gehe', 'gehst', 'geht', 'gehen', 'geht', 'gehen'] },
-  { id: 'verb-kommen', kind: 'verb', english: 'to come', infinitive: 'kommen', forms: ['komme', 'kommst', 'kommt', 'kommen', 'kommt', 'kommen'] },
-  { id: 'verb-machen', kind: 'verb', english: 'to do / to make', infinitive: 'machen', forms: ['mache', 'machst', 'macht', 'machen', 'macht', 'machen'] },
-  { id: 'verb-lernen', kind: 'verb', english: 'to learn', infinitive: 'lernen', forms: ['lerne', 'lernst', 'lernt', 'lernen', 'lernt', 'lernen'] },
-  { id: 'verb-wohnen', kind: 'verb', english: 'to live / to reside', infinitive: 'wohnen', forms: ['wohne', 'wohnst', 'wohnt', 'wohnen', 'wohnt', 'wohnen'] },
-  { id: 'verb-arbeiten', kind: 'verb', english: 'to work', infinitive: 'arbeiten', forms: ['arbeite', 'arbeitest', 'arbeitet', 'arbeiten', 'arbeitet', 'arbeiten'] },
-  { id: 'verb-sprechen', kind: 'verb', english: 'to speak', infinitive: 'sprechen', forms: ['spreche', 'sprichst', 'spricht', 'sprechen', 'sprecht', 'sprechen'] },
-  { id: 'verb-lesen', kind: 'verb', english: 'to read', infinitive: 'lesen', forms: ['lese', 'liest', 'liest', 'lesen', 'lest', 'lesen'] },
-  { id: 'verb-essen', kind: 'verb', english: 'to eat', infinitive: 'essen', forms: ['esse', 'isst', 'isst', 'essen', 'esst', 'essen'] },
-  { id: 'verb-nehmen', kind: 'verb', english: 'to take', infinitive: 'nehmen', forms: ['nehme', 'nimmst', 'nimmt', 'nehmen', 'nehmt', 'nehmen'] },
-  { id: 'verb-sehen', kind: 'verb', english: 'to see', infinitive: 'sehen', forms: ['sehe', 'siehst', 'sieht', 'sehen', 'seht', 'sehen'] },
-  { id: 'verb-fahren', kind: 'verb', english: 'to drive / to travel', infinitive: 'fahren', forms: ['fahre', 'fährst', 'fährt', 'fahren', 'fahrt', 'fahren'] },
-  { id: 'verb-schlafen', kind: 'verb', english: 'to sleep', infinitive: 'schlafen', forms: ['schlafe', 'schläfst', 'schläft', 'schlafen', 'schlaft', 'schlafen'] },
-  { id: 'verb-laufen', kind: 'verb', english: 'to run', infinitive: 'laufen', forms: ['laufe', 'läufst', 'läuft', 'laufen', 'lauft', 'laufen'] },
-  { id: 'verb-trinken', kind: 'verb', english: 'to drink', infinitive: 'trinken', forms: ['trinke', 'trinkst', 'trinkt', 'trinken', 'trinkt', 'trinken'] }
+  { id: 'verb-sein', kind: 'verb', english: 'to be', infinitive: 'sein', forms: ['bin', 'bist', 'ist', 'sind', 'seid', 'sind'], englishForms: ['I am', 'You are', 'He is', 'We are', 'You are', 'They are'] },
+  { id: 'verb-haben', kind: 'verb', english: 'to have', infinitive: 'haben', forms: ['habe', 'hast', 'hat', 'haben', 'habt', 'haben'], englishForms: ['I have', 'You have', 'He has', 'We have', 'You have', 'They have'] },
+  { id: 'verb-werden', kind: 'verb', english: 'to become', infinitive: 'werden', forms: ['werde', 'wirst', 'wird', 'werden', 'werdet', 'werden'], englishForms: ['I become', 'You become', 'He becomes', 'We become', 'You become', 'They become'] },
+  { id: 'verb-gehen', kind: 'verb', english: 'to go', infinitive: 'gehen', forms: ['gehe', 'gehst', 'geht', 'gehen', 'geht', 'gehen'], englishForms: ['I go', 'You go', 'He goes', 'We go', 'You go', 'They go'] },
+  { id: 'verb-kommen', kind: 'verb', english: 'to come', infinitive: 'kommen', forms: ['komme', 'kommst', 'kommt', 'kommen', 'kommt', 'kommen'], englishForms: ['I come', 'You come', 'He comes', 'We come', 'You come', 'They come'] },
+  { id: 'verb-machen', kind: 'verb', english: 'to do / to make', infinitive: 'machen', forms: ['mache', 'machst', 'macht', 'machen', 'macht', 'machen'], englishForms: ['I do', 'You do', 'He does', 'We do', 'You do', 'They do'] },
+  { id: 'verb-lernen', kind: 'verb', english: 'to learn', infinitive: 'lernen', forms: ['lerne', 'lernst', 'lernt', 'lernen', 'lernt', 'lernen'], englishForms: ['I learn', 'You learn', 'He learns', 'We learn', 'You learn', 'They learn'] },
+  { id: 'verb-wohnen', kind: 'verb', english: 'to live / to reside', infinitive: 'wohnen', forms: ['wohne', 'wohnst', 'wohnt', 'wohnen', 'wohnt', 'wohnen'], englishForms: ['I live', 'You live', 'He lives', 'We live', 'You live', 'They live'] },
+  { id: 'verb-arbeiten', kind: 'verb', english: 'to work', infinitive: 'arbeiten', forms: ['arbeite', 'arbeitest', 'arbeitet', 'arbeiten', 'arbeitet', 'arbeiten'], englishForms: ['I work', 'You work', 'He works', 'We work', 'You work', 'They work'] },
+  { id: 'verb-sprechen', kind: 'verb', english: 'to speak', infinitive: 'sprechen', forms: ['spreche', 'sprichst', 'spricht', 'sprechen', 'sprecht', 'sprechen'], englishForms: ['I speak', 'You speak', 'He speaks', 'We speak', 'You speak', 'They speak'] },
+  { id: 'verb-lesen', kind: 'verb', english: 'to read', infinitive: 'lesen', forms: ['lese', 'liest', 'liest', 'lesen', 'lest', 'lesen'], englishForms: ['I read', 'You read', 'He reads', 'We read', 'You read', 'They read'] },
+  { id: 'verb-essen', kind: 'verb', english: 'to eat', infinitive: 'essen', forms: ['esse', 'isst', 'isst', 'essen', 'esst', 'essen'], englishForms: ['I eat', 'You eat', 'He eats', 'We eat', 'You eat', 'They eat'] },
+  { id: 'verb-nehmen', kind: 'verb', english: 'to take', infinitive: 'nehmen', forms: ['nehme', 'nimmst', 'nimmt', 'nehmen', 'nehmt', 'nehmen'], englishForms: ['I take', 'You take', 'He takes', 'We take', 'You take', 'They take'] },
+  { id: 'verb-sehen', kind: 'verb', english: 'to see', infinitive: 'sehen', forms: ['sehe', 'siehst', 'sieht', 'sehen', 'seht', 'sehen'], englishForms: ['I see', 'You see', 'He sees', 'We see', 'You see', 'They see'] },
+  { id: 'verb-fahren', kind: 'verb', english: 'to drive / to travel', infinitive: 'fahren', forms: ['fahre', 'fährst', 'fährt', 'fahren', 'fahrt', 'fahren'], englishForms: ['I drive', 'You drive', 'He drives', 'We drive', 'You drive', 'They drive'] },
+  { id: 'verb-schlafen', kind: 'verb', english: 'to sleep', infinitive: 'schlafen', forms: ['schlafe', 'schläfst', 'schläft', 'schlafen', 'schlaft', 'schlafen'], englishForms: ['I sleep', 'You sleep', 'He sleeps', 'We sleep', 'You sleep', 'They sleep'] },
+  { id: 'verb-laufen', kind: 'verb', english: 'to run', infinitive: 'laufen', forms: ['laufe', 'läufst', 'läuft', 'laufen', 'lauft', 'laufen'], englishForms: ['I run', 'You run', 'He runs', 'We run', 'You run', 'They run'] },
+  { id: 'verb-trinken', kind: 'verb', english: 'to drink', infinitive: 'trinken', forms: ['trinke', 'trinkst', 'trinkt', 'trinken', 'trinkt', 'trinken'], englishForms: ['I drink', 'You drink', 'He drinks', 'We drink', 'You drink', 'They drink'] }
 ];
 
 export const starterWords = [...starterNouns, ...starterVerbs];

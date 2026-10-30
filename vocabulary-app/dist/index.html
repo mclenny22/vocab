@@ -8,6 +8,8 @@
   <meta name="description" content="A little German, every day. Practice nouns, articles, verbs, and conjugations.">
   <title>Deutsch — daily practice</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Vocab">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.mjs"></script>
 </head>
@@ -20,6 +22,7 @@
       <div id="mode-menu" class="choice-popover" role="menu" aria-label="Practice mode" hidden>
         <button type="button" role="menuitemradio" data-app-mode="nouns" aria-checked="true" tabindex="-1">Nouns<span class="picker-check" aria-hidden="true">✓</span></button>
         <button type="button" role="menuitemradio" data-app-mode="verbs" aria-checked="false" tabindex="-1">Verbs<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
+        <button type="button" role="menuitemradio" data-app-mode="conjugations" aria-checked="false" tabindex="-1">Conjugations<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
         <button type="button" role="menuitemradio" data-app-mode="mixed" aria-checked="false" tabindex="-1">Mixed<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
       </div>
     </div>
@@ -31,5 +34,6 @@
   </main>
   <footer class="app-footer"><span>Made with love for Alex, the love of my life. <span class="ascii-heart" aria-label="heart">&lt;3</span></span></footer>
   <noscript>This vocabulary app needs JavaScript to run.</noscript>
+  <canvas id="session-confetti" class="session-confetti" aria-hidden="true"></canvas>
 </body>
 </html>

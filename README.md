@@ -2,7 +2,8 @@
 
 A minimal German vocabulary app made for Alex. Practice nouns and verbs through multiple-choice, typing, articles, and one conjugation at a time.
 
-- Nouns, Verbs, and Mixed modes with separate saved sessions.
+- Nouns, Verbs, Conjugations, and Mixed modes with separate saved sessions.
+- Conjugation choices pair a German pronoun with an English sentence and three forms of the same verb.
 - A curated vocabulary list with regular and irregular verbs.
 - Pronouns rotate through all six present-tense forms over time.
 - Missed questions repeat with the same exercise and pronoun.

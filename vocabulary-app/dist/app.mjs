@@ -1,7 +1,9 @@
 import { starterWords } from './deck.mjs';
-import { MODES, PERSONS, STORAGE_KEY, isVerb, translation, localDay, makeSession, cardChoices, answerCard, advanceCard, missedWords, readState } from './core.mjs';
+import { createConfetti } from './confetti.mjs';
+import { MODES, PERSONS, CHOICE_PERSONS, STORAGE_KEY, isVerb, isConjugation, translation, expectedAnswer, localDay, makeSession, cardChoices, answerCard, advanceCard, missedWords, readState } from './core.mjs';
 
 const practice = document.getElementById('practice');
+const confetti = createConfetti(document.getElementById('session-confetti'));
 const storageError = document.getElementById('storage-error');
 const themeToggle = document.getElementById('theme-toggle');
 const modeTrigger = document.getElementById('app-mode');
@@ -55,8 +57,10 @@ function submit(value) {
 }
 function next() {
   if (!ensureToday()) return;
+  const previousIndex = state.session.index;
   state.session = advanceCard(state.session);
   save(); render();
+  if (previousIndex < state.session.cards.length && state.session.index === state.session.cards.length) confetti.launch();
   const target = practice.querySelector('.answer-input') || practice.querySelector('.prompt');
   target?.focus({ preventScroll: true });
 }
@@ -67,14 +71,14 @@ function startSession(retryOnly = false) {
     appMode: state.appMode,
     ids: retryOnly ? missedWords(previous) : undefined,
     retryModes: retryOnly ? Object.fromEntries(previous.cards.map(card => [card.wordId, card.mode])) : {},
-    retryPersons: retryOnly ? Object.fromEntries(previous.cards.filter(card => card.mode === 'conjugate').map(card => [card.wordId, card.person])) : {},
-    modeOffset: ((previous.cards.at(-1).mode === 'conjugate' ? 2 : MODES.indexOf(previous.cards.at(-1).mode)) + 1) % MODES.length
+    retryPersons: retryOnly ? Object.fromEntries(previous.cards.filter(isConjugation).map(card => [card.wordId, card.person])) : {},
+    modeOffset: ((isConjugation(previous.cards.at(-1)) ? 2 : MODES.indexOf(previous.cards.at(-1).mode)) + 1) % MODES.length
   });
   save(); render();
   practice.querySelector('.prompt')?.focus({ preventScroll: true });
 }
 function render() {
-  const modeLabel = { nouns: 'Nouns', verbs: 'Verbs', mixed: 'Mixed' }[state.appMode];
+  const modeLabel = { nouns: 'Nouns', verbs: 'Verbs', conjugations: 'Conjugations', mixed: 'Mixed' }[state.appMode];
   modeTrigger.querySelector('.filter-label').textContent = modeLabel;
   modeTrigger.setAttribute('aria-label', `Practice mode: ${modeLabel}`);
   for (const item of modeItems) {
@@ -84,10 +88,11 @@ function render() {
   }
   const session = state.session;
   const card = session.cards[session.index];
+  if (card) confetti.clear();
   practice.replaceChildren();
   practice.classList.toggle('completion', !card);
   const top = element('div', 'study-top');
-  top.append(element('span', '', card ? { choose: 'Choose', type: 'Type', article: 'Article', conjugate: 'Conjugate' }[card.mode] : 'Today'));
+  top.append(element('span', '', card ? { choose: 'Choose', type: 'Type', article: 'Article', conjugate: 'Conjugate', 'conjugate-choose': 'Conjugate' }[card.mode] : 'Today'));
   const counter = element('span', 'counter', `${Math.min(session.index + 1, session.cards.length)} / ${session.cards.length}`);
   counter.setAttribute('aria-label', card ? `Card ${session.index + 1} of ${session.cards.length}` : `${session.cards.length} cards completed`);
   top.append(counter);
@@ -114,18 +119,18 @@ function render() {
   }
   const word = words().find(item => item.id === card.wordId);
   const answer = session.answers[session.index];
-  prompt.textContent = card.mode === 'conjugate' ? `${PERSONS[card.person]} ___` : card.mode === 'article' ? answer ? translation(word) : `___ ${word.noun}` : word.english;
+  prompt.textContent = isConjugation(card) ? `${(card.mode === 'conjugate-choose' ? CHOICE_PERSONS : PERSONS)[card.person]} ___` : card.mode === 'article' ? answer ? translation(word) : `___ ${word.noun}` : word.english;
   if (card.mode === 'article') {
     prompt.lang = 'de';
     face.append(element('p', 'translation', word.english));
   }
-  if (card.mode === 'conjugate') {
+  if (isConjugation(card)) {
     prompt.lang = 'de';
-    face.append(element('p', 'translation', `${word.infinitive} · present`));
+    face.append(element('p', 'translation', card.mode === 'conjugate-choose' ? word.englishForms[card.person] : `${word.infinitive} · present`));
   }
-  if (card.mode === 'choose' || card.mode === 'article') {
+  if (card.mode === 'choose' || card.mode === 'article' || card.mode === 'conjugate-choose') {
     controls.classList.toggle('article-options', card.mode === 'article');
-    const expected = card.mode === 'article' ? word.article : translation(word);
+    const expected = expectedAnswer(card, word);
     for (const choice of cardChoices(card, words(), session)) {
       const control = button(choice, 'choice', () => submit(choice));
       control.lang = 'de';
@@ -173,10 +178,9 @@ function render() {
     } else {
       input.disabled = true;
       input.classList.add(answer.correct ? 'correct' : 'incorrect');
-      const result = element('p', `answer-feedback${answer.correct ? '' : ' error'}`);
+      const result = element('p', `answer-feedback ${answer.correct ? 'success' : 'error'}`);
       result.setAttribute('role', 'status');
-      result.lang = 'de';
-      result.textContent = answer.note || '✓';
+      result.textContent = answer.correct ? `✓ Correct${answer.note ? ` · ${answer.note}` : ''}` : `✕ Not quite · ${answer.note}`;
       result.setAttribute('aria-label', answer.correct ? answer.note ? `Correct. Spelling: ${answer.note}` : 'Correct' : `Correct answer: ${answer.note}`);
       form.append(result);
     }
@@ -184,7 +188,7 @@ function render() {
   }
   if (answer) {
     if (card.mode !== 'type' && card.mode !== 'conjugate') {
-      const status = element('span', 'sr-only', answer.correct ? 'Correct' : `Correct answer: ${translation(word)}`);
+      const status = element('span', 'sr-only', answer.correct ? 'Correct' : `Correct answer: ${expectedAnswer(card, word)}`);
       status.setAttribute('role', 'status');
       practice.append(status);
     }

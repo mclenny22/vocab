@@ -1,11 +1,16 @@
 export const MODES = ['choose', 'type', 'article'];
-export const APP_MODES = ['nouns', 'verbs', 'mixed'];
+export const APP_MODES = ['nouns', 'verbs', 'conjugations', 'mixed'];
 export const PERSONS = ['ich', 'du', 'er / sie / es', 'wir', 'ihr', 'sie / Sie'];
+export const CHOICE_PERSONS = ['ich', 'du', 'er', 'wir', 'ihr', 'sie'];
 export const SESSION_LENGTH = 12;
 export const STORAGE_KEY = 'german-daily.v1';
 export const isVerb = word => word?.kind === 'verb';
+export const isConjugation = card => card?.mode === 'conjugate' || card?.mode === 'conjugate-choose';
+export const canChooseConjugation = word => isVerb(word) && Array.isArray(word.forms) && new Set(word.forms).size >= 3 &&
+  Array.isArray(word.englishForms) && word.englishForms.length === PERSONS.length && word.englishForms.every(form => typeof form === 'string' && form.trim().length > 0 && form.length <= 160);
 export const translation = word => isVerb(word) ? word.infinitive : `${word.article} ${word.noun}`;
-export const wordsForMode = (words, mode) => words.filter(word => mode === 'mixed' || isVerb(word) === (mode === 'verbs'));
+export const wordsForMode = (words, mode) => words.filter(word => mode === 'conjugations' ? canChooseConjugation(word) : mode === 'mixed' || isVerb(word) === (mode === 'verbs'));
+export const expectedAnswer = (card, word) => isConjugation(card) ? word.forms[card.person] : card.mode === 'article' ? word.article : translation(word);
 const conjugationPerson = (day, batch, index) => ((Math.floor(Date.parse(`${day}T12:00:00Z`) / 86400000) + batch) * 2 + index) % PERSONS.length;
 
 export function localDay(date = new Date()) {
@@ -37,7 +42,7 @@ export function makeSession(words, { day = localDay(), batch = 0, ids, modeOffse
   const eligible = wordsForMode(words, appMode);
   const pool = ids ? eligible.filter(word => ids.includes(word.id)) : eligible;
   const remaining = shuffled(pool, random);
-  const length = Math.min(pool.length, ids ? pool.length : appMode === 'verbs' ? 6 : SESSION_LENGTH);
+  const length = Math.min(pool.length, ids ? pool.length : ['verbs', 'conjugations'].includes(appMode) ? 6 : SESSION_LENGTH);
   const cards = [];
   let conjugationIndex = 0;
   for (let index = 0; index < length; index++) {
@@ -45,9 +50,11 @@ export function makeSession(words, { day = localDay(), batch = 0, ids, modeOffse
     const preferVerb = (Math.floor(index / MODES.length) + phase) % 2 === 1;
     const preferred = appMode === 'mixed' ? remaining.findIndex(word => isVerb(word) === preferVerb) : 0;
     const [word] = remaining.splice(preferred < 0 ? 0 : preferred, 1);
-    const mode = phase === 2 && isVerb(word) ? 'conjugate' : MODES[phase];
+    const choiceTurn = (Math.floor(Date.parse(`${day}T12:00:00Z`) / 86400000 / 3) + batch + conjugationIndex) % 2 === 0;
+    const grammarMode = choiceTurn && canChooseConjugation(word) ? 'conjugate-choose' : 'conjugate';
+    const mode = appMode === 'conjugations' ? 'conjugate-choose' : phase === 2 && isVerb(word) ? grammarMode : MODES[phase];
     const card = { wordId: word.id, mode: retryModes[word.id] ?? mode };
-    if (card.mode === 'conjugate') {
+    if (isConjugation(card)) {
       card.person = retryPersons[word.id] ?? conjugationPerson(day, batch, conjugationIndex);
       conjugationIndex++;
     }
@@ -61,7 +68,7 @@ export function makeSession(words, { day = localDay(), batch = 0, ids, modeOffse
     draft: ''
   };
   for (const card of session.cards) {
-    if (card.mode === 'choose') card.choices = cardChoices(card, words, session);
+    if (card.mode === 'choose' || card.mode === 'conjugate-choose') card.choices = cardChoices(card, words, session);
   }
   return session;
 }
@@ -72,6 +79,11 @@ export function cardChoices(card, words, session) {
   if (card.mode === 'article') return ['der', 'die', 'das'];
   if (Array.isArray(card.choices)) return [...card.choices];
   const random = randomFromSeed(`${session.day}:${session.batch}:${word.id}:choices`);
+  if (card.mode === 'conjugate-choose') {
+    const answer = expectedAnswer(card, word);
+    const alternatives = [...new Set(word.forms)].filter(form => form !== answer);
+    return shuffled([answer, ...shuffled(alternatives, random).slice(0, 2)], random);
+  }
   const answer = translation(word);
   const sessionIds = new Set(session.cards.map(item => item.wordId));
   const sameKind = words.filter(item => isVerb(item) === isVerb(word));
@@ -83,13 +95,14 @@ export function cardChoices(card, words, session) {
 
 const normalize = text => text.normalize('NFC').trim().replace(/\s+/g, ' ');
 export function checkAnswer(card, word, rawAnswer) {
-  const expected = card.mode === 'conjugate' ? word.forms[card.person] : card.mode === 'article' ? word.article : translation(word);
+  const expected = expectedAnswer(card, word);
   const answer = normalize(rawAnswer);
   if (answer === expected) return { correct: true, note: '' };
   if (answer.toLocaleLowerCase('de') === expected.toLocaleLowerCase('de')) {
     return { correct: true, note: expected };
   }
-  return { correct: false, note: card.mode === 'conjugate' ? `${PERSONS[card.person]} ${expected}` : translation(word) };
+  const subject = card.mode === 'conjugate-choose' ? CHOICE_PERSONS[card.person] : PERSONS[card.person];
+  return { correct: false, note: isConjugation(card) ? `${subject} ${expected}` : translation(word) };
 }
 
 export function answerCard(session, words, rawAnswer) {
@@ -125,12 +138,13 @@ function validSession(session, words) {
     !Array.isArray(session.answers) || ![session.index, Math.min(session.index + 1, session.cards.length)].includes(session.answers.length)) return false;
   const ids = new Set(words.map(word => word.id));
   const translations = new Set(words.map(translation));
-  return session.cards.every(card => card && ids.has(card.wordId) && [...MODES, 'conjugate'].includes(card.mode) &&
+  return session.cards.every(card => card && ids.has(card.wordId) && [...MODES, 'conjugate', 'conjugate-choose'].includes(card.mode) &&
       (card.mode !== 'article' || !isVerb(words.find(word => word.id === card.wordId))) &&
-      (card.mode !== 'conjugate' || isVerb(words.find(word => word.id === card.wordId)) && Number.isInteger(card.person) && card.person >= 0 && card.person < PERSONS.length) &&
+      (!isConjugation(card) || isVerb(words.find(word => word.id === card.wordId)) && Number.isInteger(card.person) && card.person >= 0 && card.person < PERSONS.length) &&
+      (card.mode !== 'conjugate-choose' || canChooseConjugation(words.find(word => word.id === card.wordId)) && Array.isArray(card.choices)) &&
       (card.choices === undefined || Array.isArray(card.choices) && card.choices.length === 3 &&
-        new Set(card.choices).size === 3 && card.choices.every(choice => translations.has(choice)) &&
-        card.choices.includes(translation(words.find(word => word.id === card.wordId))))) &&
+        new Set(card.choices).size === 3 && card.choices.every(choice => card.mode === 'conjugate-choose' ? words.find(word => word.id === card.wordId).forms.includes(choice) : translations.has(choice)) &&
+        card.choices.includes(expectedAnswer(card, words.find(word => word.id === card.wordId))))) &&
     new Set(session.cards.map(card => card.wordId)).size === session.cards.length &&
     session.answers.every((answer, index) => {
       if (!answer || answer.wordId !== session.cards[index].wordId || typeof answer.correct !== 'boolean' || typeof answer.note !== 'string') return false;
