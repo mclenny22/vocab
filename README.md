@@ -10,7 +10,7 @@ A minimal German vocabulary app made for Alex. Practice nouns, verbs, and posses
 - Pronouns rotate through all six present-tense forms over time.
 - Missed questions repeat with the same exercise and pronoun.
 - Light and dark themes, mobile layouts, and progress saved in the browser.
-- **My topics**: record a recap of up to two minutes (or type it) to prepare a personal 30-step German lesson.
+- **My topics**: record a recap of up to two minutes (or type it) to prepare a personal 20-step German lesson.
 - Recent topics keep the latest lesson and unfinished progress on this device. Practising a topic set again creates new questions and replaces its previous test.
 
 ## Run locally

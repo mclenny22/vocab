@@ -1,4 +1,4 @@
-import { TOPICS_STORAGE_KEY, LESSON_LIMIT, LESSON_LENGTH, MAX_RECORDING_SECONDS, MAX_AUDIO_BYTES, MAX_TOPIC_LENGTH,
+import { TOPICS_STORAGE_KEY, LESSON_LIMIT, MAX_RECORDING_SECONDS, MAX_AUDIO_BYTES, MAX_TOPIC_LENGTH,
   validateLesson, newLessonSession, answerLesson, advanceLesson, readTopicLibrary } from './topics-core.mjs';
 
 const el = (tag, className, text) => {
@@ -445,7 +445,7 @@ export function createTopicPractice({ practice, trigger, onClose, onOpen, onPerf
       const row = el('div', 'recent-topic');
       const complete = lesson.session.index === lesson.session.order.length;
       const action = button('', 'recent-topic-open', () => openSaved(lesson));
-      action.append(el('span', 'recent-topic-title', lesson.title), el('span', 'recent-topic-meta', complete ? 'New lesson ↗' : `Continue · ${lesson.session.index}/${LESSON_LENGTH} →`));
+      action.append(el('span', 'recent-topic-title', lesson.title), el('span', 'recent-topic-meta', complete ? 'New lesson ↗' : `Continue · ${lesson.session.index}/${lesson.session.order.length} →`));
       const remove = button('×', 'recent-topic-delete', () => {
         library.lessons = library.lessons.filter(item => item.id !== lesson.id);
         if (library.activeId === lesson.id) library.activeId = null;

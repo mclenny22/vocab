@@ -1,5 +1,6 @@
 export const TOPICS_STORAGE_KEY = 'german-daily.topics.v1';
-export const LESSON_LENGTH = 30;
+export const LESSON_LENGTH = 20;
+const LEGACY_LESSON_LENGTH = 30;
 export const LESSON_LIMIT = 12;
 export const MAX_RECORDING_SECONDS = 120;
 export const MAX_AUDIO_BYTES = 3_500_000;
@@ -33,12 +34,12 @@ const boundedText = (value, max, empty = false) => typeof value === 'string' &&
 export const normalizeTopicAnswer = value => value.normalize('NFC').trim().replace(/\s+/g, ' ').replace(/[.!?]+$/u, '').toLocaleLowerCase('de');
 
 // Whitelist the complete payload before it enters the UI or local storage.
-export function validateLesson(value, onInvalid = () => {}) {
+export function validateLesson(value, onInvalid = () => {}, expectedLength = LESSON_LENGTH) {
   const invalid = reason => { onInvalid(reason); return null; };
   if (!value || !boundedText(value.title, 100) || !boundedText(value.summary, 500) ||
       !Array.isArray(value.topics) || !value.topics.length || value.topics.length > 6 ||
       !value.topics.every(topic => boundedText(topic, 80)) ||
-      !Array.isArray(value.questions) || value.questions.length !== LESSON_LENGTH) return invalid('Use a valid title, summary, 1–6 topics, and exactly 30 questions.');
+      !Array.isArray(value.questions) || value.questions.length !== expectedLength) return invalid(`Use a valid title, summary, 1–6 topics, and exactly ${expectedLength} questions.`);
   const prompts = new Set();
   const questions = [];
   for (const question of value.questions) {
@@ -52,7 +53,7 @@ export function validateLesson(value, onInvalid = () => {}) {
         new Set(question.options.map(normalizeTopicAnswer)).size !== 3 || !question.options.includes(question.answer))) return invalid(`Choice question ${questions.length + 1} needs exactly 3 distinct options, its exact answer among them, and acceptedAnswers: [].`);
     if (question.kind === 'type' && question.options.length !== 0) return invalid(`Typed question ${questions.length + 1} must have options: [].`);
     const signature = `${question.prompt.trim()}|${question.translation.trim()}`;
-    if (prompts.has(signature)) return invalid(`Question ${questions.length + 1} repeats an earlier prompt and translation. All 30 questions must be distinct.`);
+    if (prompts.has(signature)) return invalid(`Question ${questions.length + 1} repeats an earlier prompt and translation. All ${expectedLength} questions must be distinct.`);
     prompts.add(signature);
     questions.push(Object.fromEntries(['kind', 'topic', 'prompt', 'translation', 'answer', 'acceptedAnswers', 'options', 'explanation']
       .map(key => [key, Array.isArray(question[key]) ? [...question[key]] : question[key].trim()])));
@@ -84,13 +85,14 @@ export function readTopicLibrary(raw) {
   try { data = JSON.parse(raw); } catch { return { lessons: [], activeId: null, open: false }; }
   const lessons = [];
   for (const saved of (Array.isArray(data?.lessons) ? data.lessons : []).slice(0, LESSON_LIMIT)) {
-    const content = validateLesson(saved);
+    // Keep previous 30-question lessons and their exact progress; new lessons require 20.
+    const content = validateLesson(saved, undefined, saved?.questions?.length === LEGACY_LESSON_LENGTH ? LEGACY_LESSON_LENGTH : LESSON_LENGTH);
     if (!content || !boundedText(saved.id, 100) || lessons.some(lesson => lesson.id === saved.id) ||
         !boundedText(saved.transcript, MAX_TOPIC_LENGTH) || !Number.isFinite(Date.parse(saved.createdAt))) continue;
     let session = newLessonSession(content.questions);
     const candidate = saved.session;
-    if (candidate && Array.isArray(candidate.order) && candidate.order.length > 0 && candidate.order.length <= LESSON_LENGTH &&
-        new Set(candidate.order).size === candidate.order.length && candidate.order.every(index => Number.isInteger(index) && index >= 0 && index < LESSON_LENGTH) &&
+    if (candidate && Array.isArray(candidate.order) && candidate.order.length > 0 && candidate.order.length <= content.questions.length &&
+        new Set(candidate.order).size === candidate.order.length && candidate.order.every(index => Number.isInteger(index) && index >= 0 && index < content.questions.length) &&
         Number.isInteger(candidate.index) && candidate.index >= 0 && candidate.index <= candidate.order.length &&
         Array.isArray(candidate.answers) && [candidate.index, Math.min(candidate.index + 1, candidate.order.length)].includes(candidate.answers.length) &&
         candidate.answers.every(answer => answer && typeof answer.correct === 'boolean' && boundedText(answer.given, 160))) {

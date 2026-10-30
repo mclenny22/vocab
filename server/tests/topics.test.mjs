@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { createTopicsHandler } from '../topics.mjs';
 import { validateLesson, readTopicLibrary, newLessonSession, answerLesson, advanceLesson } from '../../vocabulary-app/dist/topics-core.mjs';
 
-function fixture() {
+function fixture(length = 20) {
   return {
     title: 'Dative practice', summary: 'Practise dative articles.', topics: ['Dative'],
-    questions: Array.from({ length: 30 }, (_, index) => ({
+    questions: Array.from({ length }, (_, index) => ({
       kind: index % 3 === 0 ? 'type' : 'choice', topic: 'Dative',
       prompt: `Complete sentence ${index + 1}: Ich fahre mit ___ Bus.`, translation: 'I travel by bus.',
       answer: 'dem', acceptedAnswers: [], options: index % 3 === 0 ? [] : ['den', 'dem', 'der'],
@@ -45,13 +45,15 @@ test('a lesson uses structured output, keeps provider storage disabled, and carr
   const result = await handle(request({ text: 'Dative prepositions', previousPrompts: ['An earlier prompt'] }));
   assert.equal(result.status, 200);
   const data = await result.json();
-  assert.equal(data.lesson.questions.length, 30);
+  assert.equal(data.lesson.questions.length, 20);
   assert.equal(data.transcript, 'Dative prepositions');
   assert.equal(payload.store, false);
   assert.equal(payload.model, 'gpt-6-luna');
   assert.equal(payload.reasoning.effort, 'none');
   assert.equal(payload.text.format.strict, true);
-  assert.equal(payload.text.format.schema.properties.questions.minItems, 30);
+  assert.equal(payload.text.format.schema.properties.questions.minItems, 20);
+  assert.equal(payload.text.format.schema.properties.questions.maxItems, 20);
+  assert.match(payload.instructions, /Create exactly 20/);
   assert.match(payload.input, /An earlier prompt/);
 });
 
@@ -123,7 +125,7 @@ test('an invalid lesson is repaired once with validation feedback, while preserv
   const result = await handle(request());
   assert.equal(result.status, 200);
   assert.equal(calls, 2);
-  assert.equal((await result.json()).lesson.questions.length, 30);
+  assert.equal((await result.json()).lesson.questions.length, 20);
 });
 
 test('an in-flight request blocks duplicate generation and the guard releases after failure', async () => {
@@ -138,7 +140,7 @@ test('an in-flight request blocks duplicate generation and the guard releases af
   assert.equal((await handle(request())).status, 200);
 });
 
-test('30-step grading survives reload, wrong answers count once, and damaged saves recover', () => {
+test('20-step grading survives reload, wrong answers count once, and damaged saves recover', () => {
   let lesson = { ...fixture(), id: 'test-lesson', transcript: 'Dative prepositions', createdAt: '2026-10-30T15:00:00Z' };
   lesson.session = newLessonSession(lesson.questions);
   assert.equal(advanceLesson(lesson), lesson);
@@ -153,10 +155,24 @@ test('30-step grading survives reload, wrong answers count once, and damaged sav
   assert.deepEqual(restored.lessons[0], lesson);
   assert.equal(restored.open, true);
   lesson = advanceLesson(lesson);
-  while (lesson.session.index < 30) lesson = advanceLesson(answerLesson(lesson, 'dem'));
-  assert.equal(lesson.session.answers.filter(answer => answer.correct).length, 29);
-  assert.equal(lesson.session.index, 30);
+  while (lesson.session.index < 20) lesson = advanceLesson(answerLesson(lesson, 'dem'));
+  assert.equal(lesson.session.answers.filter(answer => answer.correct).length, 19);
+  assert.equal(lesson.session.index, 20);
   lesson.session.order = [999];
   assert.equal(readTopicLibrary(JSON.stringify({ lessons: [lesson] })).lessons[0].session.index, 0);
   assert.deepEqual(readTopicLibrary('{broken'), { lessons: [], activeId: null, open: false });
+});
+
+test('saved 30-question lessons keep late progress, answers and drafts while new generation rejects that length', () => {
+  let lesson = { ...fixture(30), id: 'legacy-lesson', transcript: 'Dative prepositions', createdAt: '2026-10-30T15:00:00Z' };
+  lesson.session = newLessonSession(lesson.questions);
+  while (lesson.session.index < 24) lesson = advanceLesson(answerLesson(lesson, 'dem'));
+  lesson.session.draft = 'de';
+  const restored = readTopicLibrary(JSON.stringify({ lessons: [lesson], activeId: lesson.id, open: true }));
+  assert.deepEqual(restored.lessons[0], lesson);
+  assert.equal(restored.open, true);
+  assert.equal(validateLesson(lesson), null);
+  while (lesson.session.index < 30) lesson = advanceLesson(answerLesson(lesson, 'dem'));
+  assert.equal(lesson.session.answers.length, 30);
+  assert.equal(readTopicLibrary(JSON.stringify({ lessons: [lesson] })).lessons[0].session.index, 30);
 });
