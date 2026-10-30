@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#fafaf9">
-  <meta name="description" content="A little German, every day. Practice nouns, articles, verbs, conjugations, possessives, and cases.">
+  <meta name="description" content="A little German, every day. Practise German A1–A2 vocabulary and grammar by topic, from everyday phrases to past tenses and cases.">
   <title>Deutsch — daily practice</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -16,16 +16,20 @@
 <body>
   <header class="app-header">
     <div class="mode-picker">
-      <button id="app-mode" class="filter-button" type="button" aria-label="Practice mode: Nouns" aria-haspopup="menu" aria-expanded="false" aria-controls="mode-menu">
+      <button id="app-mode" class="filter-button" type="button" aria-label="Topic: Nouns" aria-haspopup="dialog" aria-expanded="false" aria-controls="mode-menu">
         <span class="filter-label">Nouns</span><svg class="filter-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 4.5 3 3 3-3"/></svg>
       </button>
-      <div id="mode-menu" class="choice-popover" role="menu" aria-label="Practice mode" hidden>
-        <button type="button" role="menuitemradio" data-app-mode="nouns" aria-checked="true" tabindex="-1">Nouns<span class="picker-check" aria-hidden="true">✓</span></button>
-        <button type="button" role="menuitemradio" data-app-mode="verbs" aria-checked="false" tabindex="-1">Verbs<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
-        <button type="button" role="menuitemradio" data-app-mode="conjugations" aria-checked="false" tabindex="-1">Conjugations<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
-        <button type="button" role="menuitemradio" data-app-mode="possessives" aria-checked="false" tabindex="-1">Possessives<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
-        <button type="button" role="menuitemradio" data-app-mode="cases" aria-checked="false" tabindex="-1">Cases<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
-        <button type="button" role="menuitemradio" data-app-mode="mixed" aria-checked="false" tabindex="-1">Mixed<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
+      <div id="mode-menu" class="choice-popover" role="dialog" aria-label="Choose a topic" hidden>
+        <div class="picker-tools">
+          <label class="sr-only" for="topic-search">Search topics</label>
+          <input id="topic-search" class="topic-search" type="search" placeholder="Search topics…" autocomplete="off" aria-controls="mode-options">
+          <div class="level-picker" role="group" aria-label="Vocabulary level">
+            <button type="button" data-level="all" aria-pressed="true">A1–A2</button>
+            <button type="button" data-level="A1" aria-pressed="false">A1</button>
+            <button type="button" data-level="A2" aria-pressed="false">A2</button>
+          </div>
+        </div>
+        <div id="mode-options" class="mode-options" role="menu" aria-label="Topics"></div>
       </div>
     </div>
     <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch to dark theme"><span class="theme-icon" aria-hidden="true"></span></button>

@@ -33,6 +33,82 @@ test('typing accepts whitespace and capital differences while preserving spellin
   assert.equal(checkAnswer({ mode: 'article' }, word, 'das').correct, false);
 });
 
+test('typed phrases accept missing or changed sentence punctuation, including the invitation example', () => {
+  const word = allWords.find(word => word.german === 'Danke für die Einladung.');
+  for (const answer of [
+    'Danke für die Einladung', 'Danke für die Einladung!', 'Danke für die Einladung?',
+    'Danke für die Einladung…', '  Danke   für die Einladung  ',
+    '„Danke für die Einladung.“', '“Danke für die Einladung!”', '"Danke für die Einladung. "'
+  ]) assert.deepEqual(checkAnswer({ mode: 'type' }, word, answer), { correct: true, note: '' }, answer);
+  assert.deepEqual(checkAnswer({ mode: 'type' }, word, 'danke für die einladung'), { correct: true, note: word.german });
+});
+
+test('phrase punctuation can vary between words without joining or dropping words', () => {
+  const word = allWords.find(word => word.german === 'Ein Zimmer für zwei Nächte, bitte.');
+  for (const answer of ['Ein Zimmer für zwei Nächte bitte', 'Ein Zimmer für zwei Nächte,bitte!', 'Ein Zimmer für zwei Nächte; bitte', 'Ein Zimmer für zwei Nächte: bitte']) {
+    assert.equal(checkAnswer({ mode: 'type' }, word, answer).correct, true, answer);
+  }
+  const apostrophe = { id: 'test-apostrophe', kind: 'phrase', english: 'How is it going?', german: "Wie geht's?" };
+  assert.equal(checkAnswer({ mode: 'type' }, apostrophe, 'Wie geht’s').correct, true);
+  assert.equal(checkAnswer({ mode: 'type' }, apostrophe, 'Wie gehts').correct, false);
+});
+
+test('lenient phrase formatting still requires the right spelling, articles, words and verb forms', () => {
+  const word = allWords.find(word => word.german === 'Danke für die Einladung.');
+  for (const answer of ['Danke fur die Einladung', 'Danke für der Einladung', 'Danke für Einladung', 'Danke die Einladung', 'Für die Einladung danke', '', '!']) {
+    assert.equal(checkAnswer({ mode: 'type' }, word, answer).correct, false, answer);
+  }
+  const repeat = allWords.find(word => word.german === 'Können Sie das bitte wiederholen?');
+  assert.equal(checkAnswer({ mode: 'type' }, repeat, 'Können Sie das bitte wiederholen').correct, true);
+  assert.equal(checkAnswer({ mode: 'type' }, repeat, 'Können Sie das bitte wiederholt').correct, false);
+  assert.equal(checkAnswer({ mode: 'type' }, repeat, 'Kann Sie das bitte wiederholen').correct, false);
+});
+
+test('phrase formatting keeps punctuation inside numbers meaningful', () => {
+  const word = { id: 'test-price', kind: 'phrase', english: 'That costs 1.50 euros.', german: 'Das kostet 1,50 Euro.' };
+  assert.equal(checkAnswer({ mode: 'type' }, word, 'Das kostet 1,50 Euro').correct, true);
+  for (const answer of ['Das kostet 150 Euro', 'Das kostet 1.50 Euro', 'Das kostet 1:50 Euro']) {
+    assert.equal(checkAnswer({ mode: 'type' }, word, answer).correct, false, answer);
+  }
+});
+
+test('a punctuation-only difference counts as correct for scoring and retries', () => {
+  const word = allWords.find(word => word.german === 'Danke für die Einladung.');
+  const session = makeSession(allWords, { appMode: 'phrases', ids: [word.id], modeOffset: 1 });
+  const answered = answerCard(session, allWords, 'Danke für die Einladung');
+  assert.equal(answered.answers[0].correct, true);
+  assert.equal(answered.answers[0].given, 'Danke für die Einladung');
+  assert.equal(answered.answers[0].note, '');
+  assert.deepEqual(missedWords(answered), []);
+  assert.equal(advanceCard(answered).index, 1);
+});
+
+test('saved formatting-only phrase mistakes are corrected without changing genuine mistakes or other sessions', () => {
+  const day = '2026-10-31';
+  const word = allWords.find(word => word.german === 'Danke für die Einladung.');
+  const other = allWords.find(word => word.german === 'Herzlich willkommen!');
+  const state = readState(null, allWords, day);
+  const nouns = structuredClone(state.sessions.nouns);
+  state.appMode = 'phrases';
+  state.session = {
+    day, batch: 3, index: 2, draft: '',
+    cards: [{ wordId: word.id, mode: 'type' }, { wordId: other.id, mode: 'type' }],
+    answers: [
+      { wordId: word.id, given: 'Danke für die Einladung', correct: false, note: word.german },
+      { wordId: other.id, given: 'Wrong answer', correct: false, note: other.german }
+    ]
+  };
+  const restored = readState(JSON.stringify(state), allWords, day);
+  assert.equal(restored.session.answers[0].correct, true);
+  assert.equal(restored.session.answers[0].note, '');
+  assert.deepEqual(restored.session.answers[1], state.session.answers[1]);
+  assert.deepEqual(missedWords(restored.session), [other.id]);
+  assert.equal(restored.session.index, 2);
+  assert.equal(restored.session.batch, 3);
+  assert.deepEqual(restored.sessions.nouns, nouns);
+  assert.deepEqual(readState(JSON.stringify(restored), allWords, day), restored);
+});
+
 test('adding vocabulary does not change the choices on existing cards', () => {
   const session = makeSession(starterWords, { day: '2026-10-30' });
   const moreWords = [...starterWords, { id: 'cloud', english: 'the cloud', noun: 'Wolke', article: 'die' }];
@@ -117,8 +193,8 @@ test('verb mode uses only verbs, includes complete conjugations, and never revea
       const choices = cardChoices(card, allWords, session);
       assert.equal(choices.length, 3);
       assert.equal(new Set(choices).size, 3);
-      assert.ok(choices.every(choice => starterVerbs.some(verb => verb.infinitive === choice)));
-      assert.deepEqual(choices.filter(choice => starterVerbs.some(verb => ids.has(verb.id) && verb.infinitive === choice)), [word.infinitive]);
+      assert.ok(choices.every(choice => allWords.some(verb => verb.infinitive === choice)));
+      assert.deepEqual(choices.filter(choice => allWords.some(verb => ids.has(verb.id) && verb.infinitive === choice)), [word.infinitive]);
     }
   }
   assert.ok(starterVerbs.every(validWord));

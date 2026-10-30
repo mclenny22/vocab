@@ -8,7 +8,7 @@ const frequency = JSON.parse(readFileSync(new URL('./fixtures/frequency-lemmas.j
 const original = JSON.parse(readFileSync(new URL('./fixtures/original-deck.json', import.meta.url), 'utf8'));
 const admissions = JSON.parse(readFileSync(new URL('./fixtures/a2-admissions.json', import.meta.url), 'utf8'));
 
-test('every addition has reviewed A2 admission evidence and the deck excludes advanced frequency words', () => {
+test('the retained baseline has reviewed A2 admission evidence and excludes advanced frequency words', () => {
   const vocabulary = [...starterNouns, ...starterVerbs];
   assert.equal(starterNouns.length, 144);
   assert.equal(starterVerbs.length, 113);
@@ -36,7 +36,7 @@ test('all original word IDs, translations, articles, forms and cues remain intac
   for (const old of [...original.nouns, ...original.verbs]) {
     const current = starterWords.find(word => word.id === old.id);
     assert.ok(current, old.id);
-    const { frequencyRank, ...withoutRank } = current;
+    const { frequencyRank, topics, level, ...withoutRank } = current;
     assert.deepEqual(withoutRank, old, old.id);
   }
 });
@@ -45,7 +45,8 @@ test('a save from the original deck keeps progress, drafts and exact choices in 
   const legacyWords = [...original.nouns, ...original.verbs];
   const oldState = readState(null, legacyWords, '2026-10-30');
   oldState.theme = 'dark';
-  for (const mode of APP_MODES.filter(mode => !['possessives', 'cases'].includes(mode))) {
+  const legacyModes = ['nouns', 'verbs', 'conjugations', 'mixed'];
+  for (const mode of legacyModes) {
     oldState.appMode = mode;
     const card = oldState.session.cards[0];
     const word = legacyWords.find(word => word.id === card.wordId);
@@ -53,7 +54,7 @@ test('a save from the original deck keeps progress, drafts and exact choices in 
     oldState.session.draft = 'partly typed';
   }
   const restored = readState(JSON.stringify(oldState), starterWords, '2026-10-30');
-  for (const mode of APP_MODES.filter(mode => !['possessives', 'cases'].includes(mode))) {
+  for (const mode of legacyModes) {
     assert.deepEqual(restored.sessions[mode], oldState.sessions[mode]);
   }
   assert.equal(restored.theme, oldState.theme);

@@ -5,7 +5,6 @@ export const POSSESSIVE_OWNERS = [
   { id: 'du', stem: 'dein', english: 'your', cue: 'your · one person, informal' },
   { id: 'er', stem: 'sein', english: 'his', cue: 'his' },
   { id: 'sie', stem: 'ihr', english: 'her', cue: 'her' },
-  { id: 'es', stem: 'sein', english: 'its', cue: 'its' },
   { id: 'wir', stem: 'unser', english: 'our', cue: 'our' },
   { id: 'ihr', stem: 'euer', english: 'your', cue: 'your · several people, informal' },
   { id: 'sie-plural', stem: 'ihr', english: 'their', cue: 'their' },

@@ -15,9 +15,9 @@ test('all owners have the complete possessive article declension, including euer
     euer: [['euer', 'eure', 'euer', 'eure'], ['euren', 'eure', 'euer', 'eure'], ['eurem', 'eurer', 'eurem', 'euren'], ['eures', 'eurer', 'eures', 'eurer']],
     Ihr: [['Ihr', 'Ihre', 'Ihr', 'Ihre'], ['Ihren', 'Ihre', 'Ihr', 'Ihre'], ['Ihrem', 'Ihrer', 'Ihrem', 'Ihren'], ['Ihres', 'Ihrer', 'Ihres', 'Ihrer']]
   };
-  assert.deepEqual(POSSESSIVE_OWNERS.map(owner => owner.id), ['ich', 'du', 'er', 'sie', 'es', 'wir', 'ihr', 'sie-plural', 'Sie']);
-  assert.equal(possessiveWords.length, 144);
-  assert.equal(new Set(possessiveWords.map(word => word.id)).size, 144);
+  assert.deepEqual(POSSESSIVE_OWNERS.map(owner => owner.id), ['ich', 'du', 'er', 'sie', 'wir', 'ihr', 'sie-plural', 'Sie']);
+  assert.equal(possessiveWords.length, 128);
+  assert.equal(new Set(possessiveWords.map(word => word.id)).size, 128);
   for (const owner of POSSESSIVE_OWNERS) {
     for (const [caseIndex, grammaticalCase] of POSSESSIVE_CASES.entries()) {
       for (const [genderIndex, gender] of POSSESSIVE_GENDERS.entries()) {
@@ -37,14 +37,48 @@ test('all owners have the complete possessive article declension, including euer
   assert.equal(possessiveWords.find(word => word.owner === 'wir' && word.grammaticalCase === 'genitive' && word.gender === 'neuter').prompt, 'Das ist das Auto ___ Kindes.');
 });
 
+test('sein Kind uses his consistently in the translation, cue and explanation', () => {
+  const word = possessiveWords.find(word => word.owner === 'er' && word.grammaticalCase === 'accusative' && word.gender === 'neuter');
+  assert.equal(translation(word), 'Ich sehe sein Kind.');
+  assert.equal(word.english, 'I see his child.');
+  assert.equal(word.cue, 'his');
+  assert.equal(word.explanation, 'his → sein · neuter · Akkusativ · no ending');
+  assert.ok(possessiveWords.every(word => !/\bits\b/.test(`${word.english} ${word.cue} ${word.explanation}`)));
+});
+
+test('saved its cards become his cards while preserving the current question and other modes', () => {
+  for (const answered of [false, true]) {
+    const state = readState(null, starterWords, '2026-10-30');
+    const nouns = structuredClone(state.sessions.nouns);
+    state.appMode = 'possessives';
+    state.session = makeSession(starterWords, { day: '2026-10-30', appMode: 'possessives', ids: ['possessive-er-accusative-2'] });
+    const card = state.session.cards[0];
+    state.session = answerCard(state.session, starterWords, 'sein');
+    const answer = state.session.answers[0];
+    state.session.cards.push({ ...card, wordId: 'possessive-es-accusative-2' });
+    state.session.index = 1;
+    state.session.draft = answered ? '' : 'unfinished';
+    if (answered) state.session.answers.push({ ...answer, wordId: 'possessive-es-accusative-2' });
+    const restored = readState(JSON.stringify(state), starterWords, '2026-10-30');
+    assert.equal(restored.session.cards.length, 1);
+    assert.equal(restored.session.index, 0);
+    assert.equal(restored.session.cards[0].wordId, 'possessive-er-accusative-2');
+    assert.equal(restored.session.answers.length, Number(answered));
+    if (answered) assert.equal(restored.session.answers[0].wordId, 'possessive-er-accusative-2');
+    assert.equal(restored.session.draft, answered ? '' : 'unfinished');
+    assert.deepEqual(restored.sessions.nouns, nouns);
+    assert.deepEqual(readState(JSON.stringify(restored), starterWords, '2026-10-30'), restored);
+  }
+});
+
 test('every full possessive session covers all owners, cases and noun categories without repeating a question', () => {
   const seen = new Set();
-  for (let batch = 0; batch < 144; batch++) {
+  for (let batch = 0; batch < 128; batch++) {
     const session = makeSession(starterWords, { day: '2026-10-30', batch, appMode: 'possessives' });
     assert.equal(session.cards.length, 15);
     assert.equal(new Set(session.cards.map(card => card.wordId)).size, 15);
     const words = session.cards.map(card => starterWords.find(word => word.id === card.wordId));
-    assert.equal(new Set(words.map(word => word.owner)).size, 9);
+    assert.equal(new Set(words.map(word => word.owner)).size, 8);
     assert.equal(new Set(words.map(word => word.grammaticalCase)).size, 4);
     assert.equal(new Set(words.map(word => word.gender)).size, 4);
     for (const card of session.cards) {
@@ -57,9 +91,9 @@ test('every full possessive session covers all owners, cases and noun categories
 });
 
 test('possessive exercises stay out of vocabulary modes and their distractors', () => {
-  assert.equal(wordsForMode(starterWords, 'possessives').length, 144);
+  assert.equal(wordsForMode(starterWords, 'possessives').length, 128);
   // The verb infinitive "sein" is also a possessive spelling; check provenance.
-  const vocabularyTranslations = new Set(wordsForMode(starterWords, 'mixed').map(translation));
+  const vocabularyTranslations = new Set(wordsForMode(starterWords, 'all-vocabulary').map(translation));
   for (const mode of APP_MODES.filter(mode => mode !== 'possessives')) {
     assert.ok(wordsForMode(starterWords, mode).every(word => !isPossessive(word)));
     const session = makeSession(starterWords, { day: '2026-10-30', appMode: mode });

@@ -2,7 +2,8 @@ import { starterWords } from './deck.mjs';
 import { createConfetti } from './confetti.mjs';
 import { CASE_LABELS } from './cases.mjs';
 import { renderCasePractice } from './case-practice.mjs';
-import { MODES, STORAGE_KEY, isVerb, isConjugation, conjugationSubject, translation, expectedAnswer, localDay, makeSession, cardChoices, answerCard, advanceCard, missedWords, readState } from './core.mjs';
+import { practiceModes, modeInfo } from './topics.mjs';
+import { MODES, STORAGE_KEY, isVerb, isNoun, isGrammar, isConjugation, conjugationSubject, translation, expectedAnswer, localDay, makeSession, cardChoices, answerCard, advanceCard, missedWords, readState, wordsForMode } from './core.mjs';
 
 const practice = document.getElementById('practice');
 const confetti = createConfetti(document.getElementById('session-confetti'));
@@ -10,7 +11,9 @@ const storageError = document.getElementById('storage-error');
 const themeToggle = document.getElementById('theme-toggle');
 const modeTrigger = document.getElementById('app-mode');
 const modeMenu = document.getElementById('mode-menu');
-const modeItems = [...modeMenu.querySelectorAll('[data-app-mode]')];
+const modeOptions = document.getElementById('mode-options');
+const topicSearch = document.getElementById('topic-search');
+const levelItems = [...modeMenu.querySelectorAll('[data-level]')];
 let raw = null;
 try { raw = localStorage.getItem(STORAGE_KEY); } catch { storageError.hidden = false; }
 let state = readState(raw, starterWords);
@@ -47,7 +50,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme
 
 function ensureToday() {
   if (state.session.day === localDay()) return true;
-  state.session = makeSession(words(), { appMode: state.appMode });
+  state.session = makeSession(words(), { appMode: state.appMode, level: state.level });
   save(); render();
   return false;
 }
@@ -72,31 +75,33 @@ function startSession(retryOnly = false) {
   state.session = makeSession(words(), {
     day: localDay(), batch: previous.batch + 1,
     appMode: state.appMode,
+    level: state.level,
     ids: retryOnly ? missedWords(previous) : undefined,
     retryModes: retryOnly ? Object.fromEntries(previous.cards.map(card => [card.wordId, card.mode])) : {},
     retryPersons: retryOnly ? Object.fromEntries(previous.cards.filter(isConjugation).map(card => [card.wordId, card.person])) : {},
-    modeOffset: ((isConjugation(previous.cards.at(-1)) ? 2 : MODES.indexOf(previous.cards.at(-1).mode)) + 1) % MODES.length
+    modeOffset: ((isConjugation(previous.cards.at(-1)) ? 2 : MODES.indexOf(previous.cards.at(-1)?.mode)) + 1) % MODES.length
   });
   save(); render();
   practice.querySelector('.prompt')?.focus({ preventScroll: true });
 }
 function render() {
-  const modeLabel = { nouns: 'Nouns', verbs: 'Verbs', conjugations: 'Conjugations', possessives: 'Possessives', cases: 'Cases', mixed: 'Mixed' }[state.appMode];
+  const info = modeInfo(state.appMode);
+  const modeLabel = info.label;
   modeTrigger.querySelector('.filter-label').textContent = modeLabel;
-  modeTrigger.setAttribute('aria-label', `Practice mode: ${modeLabel}`);
-  for (const item of modeItems) {
-    const selected = item.dataset.appMode === state.appMode;
-    item.setAttribute('aria-checked', String(selected));
-    item.querySelector('.picker-check').hidden = !selected;
-  }
+  modeTrigger.setAttribute('aria-label', `Topic: ${modeLabel}`);
+  renderModeOptions();
   const session = state.session;
   const card = session.cards[session.index];
   const word = card ? words().find(item => item.id === card.wordId) : null;
   if (card) confetti.clear();
   practice.replaceChildren();
   practice.classList.toggle('completion', !card);
+  if (!session.cards.length) {
+    practice.append(element('h1', 'prompt', 'No exercises at this level.'), button('Use A1–A2', 'primary', () => { state.level = 'all'; ensureToday(); save(); render(); }));
+    return;
+  }
   const top = element('div', 'study-top');
-  top.append(element('span', '', card?.mode === 'case-complete' ? CASE_LABELS[word.grammaticalCase] : card ? { choose: 'Choose', type: 'Type', article: 'Article', conjugate: 'Conjugate', 'conjugate-choose': 'Conjugate', 'possessive-choose': 'Possessive' }[card.mode] : 'Today'));
+  top.append(element('span', '', card?.mode === 'case-complete' ? CASE_LABELS[word.grammaticalCase] : card ? { choose: 'Choose', type: 'Type', article: 'Article', conjugate: 'Conjugate', 'conjugate-choose': 'Conjugate', 'possessive-choose': 'Possessive', 'grammar-choose': 'Complete' }[card.mode] : 'Today'));
   const counter = element('span', 'counter', `${Math.min(session.index + 1, session.cards.length)} / ${session.cards.length}`);
   counter.setAttribute('aria-label', card ? `Card ${session.index + 1} of ${session.cards.length}` : `${session.cards.length} cards completed`);
   top.append(counter);
@@ -142,15 +147,14 @@ function render() {
     prompt.lang = 'de';
     face.append(element('p', 'translation', card.mode === 'conjugate-choose' ? word.englishForms[card.person] : `${word.infinitive} · present`));
   }
-  if (card.mode === 'possessive-choose') {
+  if (card.mode === 'possessive-choose' || isGrammar(word)) {
     prompt.lang = 'de';
     prompt.classList.add('sentence-prompt');
     prompt.textContent = answer ? translation(word) : word.prompt;
     face.append(element('p', 'translation', word.english));
-    const cue = element('p', 'grammar-cue', `${word.cue} · ${word.nounCue}`);
-    face.append(cue);
+    if (card.mode === 'possessive-choose') face.append(element('p', 'grammar-cue', `${word.cue} · ${word.nounCue}`));
   }
-  if (['choose', 'article', 'conjugate-choose', 'possessive-choose'].includes(card.mode)) {
+  if (['choose', 'article', 'conjugate-choose', 'possessive-choose', 'grammar-choose'].includes(card.mode)) {
     controls.classList.toggle('article-options', card.mode === 'article');
     const expected = expectedAnswer(card, word);
     for (const choice of cardChoices(card, words(), session)) {
@@ -174,8 +178,8 @@ function render() {
     const form = element('form', 'controls');
     const input = element('input', 'answer-input');
     input.type = 'text'; input.name = 'answer'; input.lang = 'de'; input.maxLength = 160;
-    input.placeholder = card.mode === 'conjugate' ? 'Verb form' : isVerb(word) ? 'German verb' : 'German + article'; input.autocomplete = 'off'; input.autocapitalize = 'off'; input.spellcheck = false;
-    input.setAttribute('aria-label', card.mode === 'conjugate' ? `${conjugationSubject(card, word)} — ${word.infinitive}` : isVerb(word) ? 'German verb' : 'German word with article');
+    input.placeholder = card.mode === 'conjugate' ? 'Verb form' : isVerb(word) ? 'German verb' : isNoun(word) ? 'German + article' : word.kind === 'phrase' ? 'German phrase' : 'German word'; input.autocomplete = 'off'; input.autocapitalize = 'off'; input.spellcheck = false;
+    input.setAttribute('aria-label', card.mode === 'conjugate' ? `${conjugationSubject(card, word)} — ${word.infinitive}` : isNoun(word) ? 'German word with article' : input.placeholder);
     input.required = true;
     input.value = answer ? answer.given : session.draft;
     input.addEventListener('input', () => { state.session.draft = input.value; save(); });
@@ -209,7 +213,7 @@ function render() {
     controls.append(form);
   }
   if (answer) {
-    if (card.mode === 'possessive-choose') {
+    if (card.mode === 'possessive-choose' || isGrammar(word)) {
       const feedback = element('p', 'grammar-feedback', word.explanation);
       feedback.setAttribute('role', 'status');
       practice.append(feedback);
@@ -223,18 +227,68 @@ function render() {
   }
 }
 
+function renderModeOptions() {
+  const query = topicSearch.value.trim().toLocaleLowerCase();
+  const matches = practiceModes.filter(info => `${info.label} ${info.description}`.toLocaleLowerCase().includes(query));
+  modeOptions.replaceChildren();
+  for (const levelButton of levelItems) levelButton.setAttribute('aria-pressed', String(levelButton.dataset.level === state.level));
+  const groups = ['Practice', 'Everyday topics', 'Grammar'];
+  for (const group of groups) {
+    const items = matches.filter(info => info.group === group);
+    if (!items.length) continue;
+    const section = element('div', 'picker-group');
+    section.setAttribute('role', 'group');
+    section.setAttribute('aria-label', group);
+    const heading = element('p', 'picker-heading', group === 'Everyday topics' ? 'Topics' : group);
+    heading.setAttribute('aria-hidden', 'true');
+    section.append(heading);
+    for (const info of items) {
+      const count = wordsForMode(words(), info.id, state.level).length;
+      const item = button('', 'topic-option', () => {
+        state.appMode = info.id;
+        closeModeMenu(true); ensureToday(); save(); render();
+      });
+      item.setAttribute('role', 'menuitemradio');
+      item.setAttribute('aria-checked', String(info.id === state.appMode));
+      item.setAttribute('aria-label', `${info.label}, ${count} ${group === 'Grammar' ? 'exercises' : 'words and phrases'}`);
+      item.dataset.appMode = info.id;
+      item.tabIndex = -1;
+      item.append(element('span', 'topic-option-title', info.label));
+      const total = element('span', 'topic-count', String(count));
+      total.setAttribute('aria-hidden', 'true');
+      item.append(total);
+      const check = element('span', 'picker-check', '✓');
+      check.setAttribute('aria-hidden', 'true');
+      check.style.visibility = info.id === state.appMode ? 'visible' : 'hidden';
+      item.append(check);
+      section.append(item);
+    }
+    modeOptions.append(section);
+  }
+  if (!matches.length) {
+    const empty = element('p', 'picker-empty', 'No topics found.');
+    empty.setAttribute('role', 'status');
+    modeOptions.append(empty);
+  }
+}
 function closeModeMenu(restoreFocus = false) {
   modeMenu.hidden = true;
   modeTrigger.setAttribute('aria-expanded', 'false');
   if (restoreFocus) modeTrigger.focus({ preventScroll: true });
 }
-function openModeMenu(position = 'selected') {
+function openModeMenu(position = 'search') {
+  topicSearch.value = '';
+  renderModeOptions();
   modeMenu.hidden = false;
   modeTrigger.setAttribute('aria-expanded', 'true');
-  const items = [...modeMenu.querySelectorAll('button')];
-  const selected = modeItems.find(item => item.dataset.appMode === state.appMode);
-  (position === 'first' ? items[0] : position === 'last' ? items.at(-1) : selected).focus({ preventScroll: true });
+  const items = [...modeOptions.querySelectorAll('button')];
+  (position === 'first' ? items[0] : position === 'last' ? items.at(-1) : topicSearch)?.focus();
 }
+topicSearch.addEventListener('input', renderModeOptions);
+for (const item of levelItems) item.addEventListener('click', () => {
+  state.level = item.dataset.level;
+  ensureToday(); save(); render();
+});
 modeTrigger.addEventListener('click', () => modeMenu.hidden ? openModeMenu() : closeModeMenu(true));
 modeTrigger.addEventListener('keydown', event => {
   if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
@@ -242,17 +296,17 @@ modeTrigger.addEventListener('keydown', event => {
 });
 modeMenu.addEventListener('keydown', event => {
   if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeModeMenu(true); return; }
-  if (event.key === 'Tab') { closeModeMenu(); return; }
+  if (event.target.closest('.level-picker')) return;
+  if (event.target === topicSearch && !['ArrowDown', 'ArrowUp'].includes(event.key)) return;
   if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
   event.preventDefault();
-  const items = [...modeMenu.querySelectorAll('button')];
+  const items = [...modeOptions.querySelectorAll('button')];
   const current = items.indexOf(document.activeElement);
   const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (current + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
-  items[next].focus({ preventScroll: true });
+  items[next]?.focus();
 });
-for (const item of modeItems) item.addEventListener('click', () => {
-  state.appMode = item.dataset.appMode;
-  closeModeMenu(true); ensureToday(); save(); render();
+modeMenu.addEventListener('focusout', event => {
+  if (event.relatedTarget && !modeMenu.contains(event.relatedTarget) && event.relatedTarget !== modeTrigger) closeModeMenu();
 });
 document.addEventListener('click', event => {
   if (!modeMenu.hidden && !event.target.closest('.mode-picker')) closeModeMenu();
