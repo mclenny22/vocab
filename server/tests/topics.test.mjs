@@ -49,6 +49,7 @@ test('a lesson uses structured output, keeps provider storage disabled, and carr
   assert.equal(data.transcript, 'Dative prepositions');
   assert.equal(payload.store, false);
   assert.equal(payload.model, 'gpt-6-luna');
+  assert.equal(payload.reasoning.effort, 'none');
   assert.equal(payload.text.format.strict, true);
   assert.equal(payload.text.format.schema.properties.questions.minItems, 30);
   assert.match(payload.input, /An earlier prompt/);
@@ -108,10 +109,12 @@ test('an invalid lesson is repaired once with validation feedback, while preserv
     calls++;
     const payload = JSON.parse(options.body);
     if (calls === 1) {
+      assert.equal(payload.reasoning.effort, 'none');
       firstSignal = options.signal;
       return response(malformed);
     }
     assert.equal(options.signal, firstSignal);
+    assert.equal(payload.reasoning.effort, 'low');
     assert.match(payload.input[0].content, /Dative prepositions and shopping/);
     assert.match(payload.input[2].content, /Question 3 repeats an earlier prompt/);
     assert.equal(payload.store, false);

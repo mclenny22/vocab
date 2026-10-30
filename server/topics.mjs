@@ -93,7 +93,7 @@ export function createTopicsHandler({ env = process.env, fetchImpl = fetch, now 
           store: false,
           instructions,
           input: `Topics to practise:\n${text.trim()}${previous.length ? `\n\nThis is a new version of an earlier lesson. Keep the same topic scope but create different sentences and questions. Avoid these previous prompts:\n${JSON.stringify(previous)}` : ''}`,
-          reasoning: { effort: 'low' },
+          reasoning: { effort: 'none' },
           max_output_tokens: 14000,
           text: { format: { type: 'json_schema', name: 'german_practice_lesson', strict: true, schema: LESSON_SCHEMA } }
         };
@@ -115,6 +115,7 @@ export function createTopicsHandler({ env = process.env, fetchImpl = fetch, now 
           if (lesson) return json({ lesson, transcript: text.trim() });
           console.warn('Lesson validation failed:', issue);
           // Repair an invalid generation once; never deliver unchecked or duplicate questions.
+          lessonRequest.reasoning = { effort: 'low' };
           lessonRequest.input = [
             { role: 'user', content: topicInput },
             { role: 'assistant', content: candidate.slice(0, 100_000) },
