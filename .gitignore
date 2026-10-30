@@ -1,0 +1,10 @@
+_designreference/
+.DS_Store
+._*
+node_modules/
+*.log
+.env
+.env.*
+!.env.example
+.codex/
+.agents/

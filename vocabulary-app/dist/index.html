@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#fafaf9">
+  <meta name="description" content="A little German, every day. Practice nouns, articles, verbs, and conjugations.">
+  <title>Deutsch — daily practice</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="mode-picker">
+      <button id="app-mode" class="filter-button" type="button" aria-label="Practice mode: Nouns" aria-haspopup="menu" aria-expanded="false" aria-controls="mode-menu">
+        <span class="filter-label">Nouns</span><svg class="filter-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 4.5 3 3 3-3"/></svg>
+      </button>
+      <div id="mode-menu" class="choice-popover" role="menu" aria-label="Practice mode" hidden>
+        <button type="button" role="menuitemradio" data-app-mode="nouns" aria-checked="true" tabindex="-1">Nouns<span class="picker-check" aria-hidden="true">✓</span></button>
+        <button type="button" role="menuitemradio" data-app-mode="verbs" aria-checked="false" tabindex="-1">Verbs<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
+        <button type="button" role="menuitemradio" data-app-mode="mixed" aria-checked="false" tabindex="-1">Mixed<span class="picker-check" aria-hidden="true" hidden>✓</span></button>
+      </div>
+    </div>
+    <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch to dark theme"><span class="theme-icon" aria-hidden="true"></span></button>
+  </header>
+  <main class="practice-shell">
+    <section id="practice" class="study-card" aria-label="German practice"></section>
+    <p id="storage-error" class="storage-error" role="status" hidden>Progress couldn’t be saved in this browser.</p>
+  </main>
+  <footer class="app-footer"><span>Made with love for Alex, the love of my life. <span class="ascii-heart" aria-label="heart">&lt;3</span></span></footer>
+  <noscript>This vocabulary app needs JavaScript to run.</noscript>
+</body>
+</html>
