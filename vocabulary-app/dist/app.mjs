@@ -1,6 +1,6 @@
 import { starterWords } from './deck.mjs';
 import { createConfetti } from './confetti.mjs';
-import { MODES, PERSONS, CHOICE_PERSONS, STORAGE_KEY, isVerb, isConjugation, translation, expectedAnswer, localDay, makeSession, cardChoices, answerCard, advanceCard, missedWords, readState } from './core.mjs';
+import { MODES, STORAGE_KEY, isVerb, isConjugation, conjugationSubject, translation, expectedAnswer, localDay, makeSession, cardChoices, answerCard, advanceCard, missedWords, readState } from './core.mjs';
 
 const practice = document.getElementById('practice');
 const confetti = createConfetti(document.getElementById('session-confetti'));
@@ -60,7 +60,8 @@ function next() {
   const previousIndex = state.session.index;
   state.session = advanceCard(state.session);
   save(); render();
-  if (previousIndex < state.session.cards.length && state.session.index === state.session.cards.length) confetti.launch();
+  if (previousIndex < state.session.cards.length && state.session.index === state.session.cards.length &&
+      state.session.answers.every(answer => answer.correct)) confetti.launch();
   const target = practice.querySelector('.answer-input') || practice.querySelector('.prompt');
   target?.focus({ preventScroll: true });
 }
@@ -78,7 +79,7 @@ function startSession(retryOnly = false) {
   practice.querySelector('.prompt')?.focus({ preventScroll: true });
 }
 function render() {
-  const modeLabel = { nouns: 'Nouns', verbs: 'Verbs', conjugations: 'Conjugations', mixed: 'Mixed' }[state.appMode];
+  const modeLabel = { nouns: 'Nouns', verbs: 'Verbs', conjugations: 'Conjugations', possessives: 'Possessives', mixed: 'Mixed' }[state.appMode];
   modeTrigger.querySelector('.filter-label').textContent = modeLabel;
   modeTrigger.setAttribute('aria-label', `Practice mode: ${modeLabel}`);
   for (const item of modeItems) {
@@ -92,7 +93,7 @@ function render() {
   practice.replaceChildren();
   practice.classList.toggle('completion', !card);
   const top = element('div', 'study-top');
-  top.append(element('span', '', card ? { choose: 'Choose', type: 'Type', article: 'Article', conjugate: 'Conjugate', 'conjugate-choose': 'Conjugate' }[card.mode] : 'Today'));
+  top.append(element('span', '', card ? { choose: 'Choose', type: 'Type', article: 'Article', conjugate: 'Conjugate', 'conjugate-choose': 'Conjugate', 'possessive-choose': 'Possessive' }[card.mode] : 'Today'));
   const counter = element('span', 'counter', `${Math.min(session.index + 1, session.cards.length)} / ${session.cards.length}`);
   counter.setAttribute('aria-label', card ? `Card ${session.index + 1} of ${session.cards.length}` : `${session.cards.length} cards completed`);
   top.append(counter);
@@ -119,7 +120,7 @@ function render() {
   }
   const word = words().find(item => item.id === card.wordId);
   const answer = session.answers[session.index];
-  prompt.textContent = isConjugation(card) ? `${(card.mode === 'conjugate-choose' ? CHOICE_PERSONS : PERSONS)[card.person]} ___` : card.mode === 'article' ? answer ? translation(word) : `___ ${word.noun}` : word.english;
+  prompt.textContent = isConjugation(card) ? `${conjugationSubject(card, word)} ___` : card.mode === 'article' ? answer ? translation(word) : `___ ${word.noun}` : word.english;
   if (card.mode === 'article') {
     prompt.lang = 'de';
     face.append(element('p', 'translation', word.english));
@@ -128,7 +129,15 @@ function render() {
     prompt.lang = 'de';
     face.append(element('p', 'translation', card.mode === 'conjugate-choose' ? word.englishForms[card.person] : `${word.infinitive} · present`));
   }
-  if (card.mode === 'choose' || card.mode === 'article' || card.mode === 'conjugate-choose') {
+  if (card.mode === 'possessive-choose') {
+    prompt.lang = 'de';
+    prompt.classList.add('sentence-prompt');
+    prompt.textContent = answer ? translation(word) : word.prompt;
+    face.append(element('p', 'translation', word.english));
+    const cue = element('p', 'grammar-cue', `${word.cue} · ${word.nounCue}`);
+    face.append(cue);
+  }
+  if (['choose', 'article', 'conjugate-choose', 'possessive-choose'].includes(card.mode)) {
     controls.classList.toggle('article-options', card.mode === 'article');
     const expected = expectedAnswer(card, word);
     for (const choice of cardChoices(card, words(), session)) {
@@ -153,7 +162,7 @@ function render() {
     const input = element('input', 'answer-input');
     input.type = 'text'; input.name = 'answer'; input.lang = 'de'; input.maxLength = 160;
     input.placeholder = card.mode === 'conjugate' ? 'Verb form' : isVerb(word) ? 'German verb' : 'German + article'; input.autocomplete = 'off'; input.autocapitalize = 'off'; input.spellcheck = false;
-    input.setAttribute('aria-label', card.mode === 'conjugate' ? `${PERSONS[card.person]} — ${word.infinitive}` : isVerb(word) ? 'German verb' : 'German word with article');
+    input.setAttribute('aria-label', card.mode === 'conjugate' ? `${conjugationSubject(card, word)} — ${word.infinitive}` : isVerb(word) ? 'German verb' : 'German word with article');
     input.required = true;
     input.value = answer ? answer.given : session.draft;
     input.addEventListener('input', () => { state.session.draft = input.value; save(); });
@@ -187,6 +196,11 @@ function render() {
     controls.append(form);
   }
   if (answer) {
+    if (card.mode === 'possessive-choose') {
+      const feedback = element('p', 'grammar-feedback', word.explanation);
+      feedback.setAttribute('role', 'status');
+      practice.append(feedback);
+    }
     if (card.mode !== 'type' && card.mode !== 'conjugate') {
       const status = element('span', 'sr-only', answer.correct ? 'Correct' : `Correct answer: ${expectedAnswer(card, word)}`);
       status.setAttribute('role', 'status');

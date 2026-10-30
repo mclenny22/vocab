@@ -5,9 +5,9 @@ import { MODES, PERSONS, isVerb, isConjugation, canChooseConjugation, validWord,
 
 test('each session rotates the three formats without repeating or previewing its words', () => {
   const session = makeSession(starterWords, { day: '2026-10-30' });
-  assert.equal(session.cards.length, 12);
-  assert.deepEqual(session.cards.map(card => card.mode), Array.from({ length: 12 }, (_, i) => MODES[i % 3]));
-  assert.equal(new Set(session.cards.map(card => card.wordId)).size, 12);
+  assert.equal(session.cards.length, 15);
+  assert.deepEqual(session.cards.map(card => card.mode), Array.from({ length: 15 }, (_, i) => MODES[i % 3]));
+  assert.equal(new Set(session.cards.map(card => card.wordId)).size, 15);
   const sessionTranslations = session.cards.map(card => translation(starterWords.find(word => word.id === card.wordId)));
   for (const card of session.cards.filter(card => card.mode === 'choose')) {
     const choices = cardChoices(card, starterWords, session);
@@ -54,8 +54,8 @@ test('answers are recorded once, advancement requires an answer, and retries con
     assert.equal(answerCard(session, starterWords, 'wrong'), session);
     session = advanceCard(session);
   }
-  assert.equal(session.answers.length, 12);
-  assert.equal(session.index, 12);
+  assert.equal(session.answers.length, 15);
+  assert.equal(session.index, 15);
   assert.deepEqual(missedWords(session), missed);
   assert.equal(advanceCard(session), session);
   const retry = makeSession(starterWords, { day: session.day, batch: 1, ids: missed });
@@ -79,7 +79,7 @@ test('refresh restores both answered cards and drafts; a new day resets only the
 });
 
 test('corrupt storage and invalid cards recover safely without losing valid custom words', () => {
-  assert.equal(readState('{broken', starterWords, '2026-10-30').session.cards.length, 12);
+  assert.equal(readState('{broken', starterWords, '2026-10-30').session.cards.length, 15);
   for (const value of [null, [], 'oops', 123, { version: 1, session: {} }]) {
     assert.equal(readState(JSON.stringify(value), starterWords, '2026-10-30').session.index, 0);
   }
@@ -104,10 +104,10 @@ test('daily rollover uses the device calendar, not a UTC date slice', () => {
 
 test('verb mode uses only verbs, includes complete conjugations, and never reveals upcoming verbs in choices', () => {
   const session = makeSession(allWords, { day: '2026-10-30', appMode: 'verbs' });
-  assert.equal(session.cards.length, 6);
-  assert.deepEqual(session.cards.filter(card => !isConjugation(card)).map(card => card.mode), ['choose', 'type', 'choose', 'type']);
-  assert.equal(session.cards.filter(card => card.mode === 'conjugate').length, 1);
-  assert.equal(session.cards.filter(card => card.mode === 'conjugate-choose').length, 1);
+  assert.equal(session.cards.length, 15);
+  assert.deepEqual(session.cards.filter(card => !isConjugation(card)).map(card => card.mode), Array.from({ length: 5 }, () => ['choose', 'type']).flat());
+  assert.equal(session.cards.filter(isConjugation).length, 5);
+  assert.equal(Math.abs(session.cards.filter(card => card.mode === 'conjugate').length - session.cards.filter(card => card.mode === 'conjugate-choose').length), 1);
   const ids = new Set(session.cards.map(card => card.wordId));
   for (const card of session.cards) {
     const word = allWords.find(word => word.id === card.wordId);
@@ -126,9 +126,9 @@ test('verb mode uses only verbs, includes complete conjugations, and never revea
 
 test('mixed sessions balance nouns and verbs while assigning the right grammar task', () => {
   const session = makeSession(allWords, { day: '2026-10-30', appMode: 'mixed' });
-  assert.equal(session.cards.length, 12);
-  assert.equal(session.cards.filter(card => isVerb(allWords.find(word => word.id === card.wordId))).length, 6);
-  assert.equal(session.cards.filter(card => card.mode === 'article').length, 2);
+  assert.equal(session.cards.length, 15);
+  assert.equal(session.cards.filter(card => isVerb(allWords.find(word => word.id === card.wordId))).length, 7);
+  assert.equal(session.cards.filter(card => card.mode === 'article').length, 3);
   assert.equal(session.cards.filter(isConjugation).length, 2);
   assert.equal(session.cards.filter(card => card.mode === 'conjugate-choose').length, 1);
   for (const card of session.cards) {
@@ -187,7 +187,7 @@ test('conjugation results restore safely and retries preserve the missed exercis
     retryModes: Object.fromEntries(state.session.cards.map(card => [card.wordId, card.mode])),
     retryPersons: Object.fromEntries(state.session.cards.filter(isConjugation).map(card => [card.wordId, card.person]))
   });
-  assert.equal(retry.cards.length, 2);
+  assert.equal(retry.cards.length, 5);
   assert.ok(retry.cards.every(isConjugation));
   retry.cards.forEach(card => assert.equal(card.person, state.session.cards.find(previous => previous.wordId === card.wordId).person));
   const malformed = JSON.parse(JSON.stringify(state));
@@ -248,8 +248,8 @@ test('the previous noun-only save migrates without losing its progress or custom
   assert.deepEqual(state.session, original.session);
   assert.deepEqual(state.customWords, original.customWords);
   assert.equal(state.theme, 'dark');
-  assert.equal(state.sessions.verbs.cards.length, 6);
-  assert.equal(state.sessions.mixed.cards.length, 12);
+  assert.equal(state.sessions.verbs.cards.length, 15);
+  assert.equal(state.sessions.mixed.cards.length, 15);
 });
 
 test('custom verbs require all six forms and are available only in the relevant modes', () => {
@@ -284,9 +284,9 @@ test('every conjugation choice has exactly three distinct forms of the same verb
 test('the dedicated conjugation mode covers all six pronouns with saved, stable choice options', () => {
   const state = readState(null, allWords, '2026-10-30');
   state.appMode = 'conjugations';
-  assert.equal(state.session.cards.length, 6);
+  assert.equal(state.session.cards.length, 15);
   assert.ok(state.session.cards.every(card => card.mode === 'conjugate-choose'));
-  assert.deepEqual(state.session.cards.map(card => card.person).sort(), [0, 1, 2, 3, 4, 5]);
+  assert.deepEqual([...new Set(state.session.cards.map(card => card.person))].sort(), [0, 1, 2, 3, 4, 5]);
   const card = state.session.cards[0];
   const word = allWords.find(word => word.id === card.wordId);
   const choices = cardChoices(card, allWords, state.session);
@@ -318,7 +318,7 @@ test('older saved sessions survive the addition of the new conjugation mode', ()
   const nounSession = structuredClone(state.session);
   const restored = readState(JSON.stringify(state), allWords, '2026-10-30');
   assert.deepEqual(restored.session, nounSession);
-  assert.equal(restored.sessions.conjugations.cards.length, 6);
+  assert.equal(restored.sessions.conjugations.cards.length, 15);
   assert.ok(restored.sessions.conjugations.cards.every(card => card.mode === 'conjugate-choose'));
 });
 
@@ -327,4 +327,20 @@ test('verbs without curated English sentences keep typed conjugation practice', 
   assert.equal(canChooseConjugation(legacy), false);
   const session = makeSession([legacy], { day: '2026-10-30', appMode: 'verbs', modeOffset: 2 });
   assert.equal(session.cards[0].mode, 'conjugate');
+});
+
+test('existing twelve-step sessions keep their progress when new sessions grow to fifteen', () => {
+  const state = readState(null, allWords, '2026-10-30');
+  state.session.cards = state.session.cards.slice(0, 12);
+  const card = state.session.cards[0];
+  const word = allWords.find(word => word.id === card.wordId);
+  state.session = advanceCard(answerCard(state.session, allWords, expectedAnswer(card, word)));
+  const restored = readState(JSON.stringify(state), allWords, '2026-10-30');
+  assert.deepEqual(restored.session, state.session);
+  assert.equal(restored.session.cards.length, 12);
+  for (const appMode of ['nouns', 'verbs', 'conjugations', 'mixed']) {
+    const fresh = makeSession(allWords, { day: '2026-10-30', batch: 1, appMode });
+    assert.equal(fresh.cards.length, 15);
+    assert.equal(new Set(fresh.cards.map(card => card.wordId)).size, 15);
+  }
 });
