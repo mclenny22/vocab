@@ -2,7 +2,6 @@ import { starterWords } from './deck.mjs';
 import { createConfetti } from './confetti.mjs';
 import { CASE_LABELS } from './cases.mjs';
 import { renderCasePractice } from './case-practice.mjs';
-import { createTopicPractice } from './topics.mjs';
 import { MODES, STORAGE_KEY, isVerb, isConjugation, conjugationSubject, translation, expectedAnswer, localDay, makeSession, cardChoices, answerCard, advanceCard, missedWords, readState } from './core.mjs';
 
 const practice = document.getElementById('practice');
@@ -15,7 +14,6 @@ const modeItems = [...modeMenu.querySelectorAll('[data-app-mode]')];
 let raw = null;
 try { raw = localStorage.getItem(STORAGE_KEY); } catch { storageError.hidden = false; }
 let state = readState(raw, starterWords);
-let topics;
 const words = () => [...starterWords, ...state.customWords];
 const element = (tag, className, text) => {
   const el = document.createElement(tag);
@@ -83,8 +81,6 @@ function startSession(retryOnly = false) {
   practice.querySelector('.prompt')?.focus({ preventScroll: true });
 }
 function render() {
-  if (topics?.isOpen) return;
-  practice.classList.remove('topics-card');
   const modeLabel = { nouns: 'Nouns', verbs: 'Verbs', conjugations: 'Conjugations', possessives: 'Possessives', cases: 'Cases', mixed: 'Mixed' }[state.appMode];
   modeTrigger.querySelector('.filter-label').textContent = modeLabel;
   modeTrigger.setAttribute('aria-label', `Practice mode: ${modeLabel}`);
@@ -256,7 +252,6 @@ modeMenu.addEventListener('keydown', event => {
 });
 for (const item of modeItems) item.addEventListener('click', () => {
   state.appMode = item.dataset.appMode;
-  if (topics?.isOpen) topics.close();
   closeModeMenu(true); ensureToday(); save(); render();
 });
 document.addEventListener('click', event => {
@@ -267,15 +262,5 @@ window.addEventListener('storage', event => {
   if (event.key !== STORAGE_KEY) return;
   state = readState(event.newValue, starterWords);
   applyTheme(); render();
-});
-topics = createTopicPractice({
-  practice, trigger: document.getElementById('my-topics'),
-  onClose: render,
-  onOpen() {
-    closeModeMenu(); confetti.clear();
-    modeTrigger.querySelector('.filter-label').textContent = 'My topics';
-    modeTrigger.setAttribute('aria-label', 'Practice mode: My topics');
-  },
-  onPerfect: () => confetti.launch()
 });
 applyTheme(); render(); save();
